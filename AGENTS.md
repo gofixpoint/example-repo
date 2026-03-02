@@ -22,8 +22,8 @@ The current implementation is a frontend-only prototype:
 ## Local development
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 Default port: `9876`

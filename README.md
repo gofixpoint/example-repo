@@ -9,8 +9,8 @@ A simple example website built with Vite, React, and TypeScript to demo:
 ## Run locally
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 The dev server runs on `http://localhost:9876` by default.
@@ -18,8 +18,8 @@ The dev server runs on `http://localhost:9876` by default.
 ## Build
 
 ```bash
-npm run build
-npm run preview
+pnpm build
+pnpm preview
 ```
 
 Preview also runs on port `9876`.
