@@ -1,0 +1,31 @@
+# Amika Demo Site
+
+A simple example website built with Vite, React, and TypeScript to demo:
+
+- Software factory workflows
+- Sandbox messaging
+- Sandbox filesystem behavior
+
+## Run locally
+
+```bash
+npm install
+npm run dev
+```
+
+The dev server runs on `http://localhost:9876` by default.
+
+## Build
+
+```bash
+npm run build
+npm run preview
+```
+
+Preview also runs on port `9876`.
+
+## Project structure
+
+- `src/App.tsx`: main demo UI and mocked interactions
+- `src/styles.css`: visual styling and responsive layout
+- `vite.config.ts`: Vite config (including default ports)
