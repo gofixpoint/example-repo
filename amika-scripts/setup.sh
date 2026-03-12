@@ -11,5 +11,5 @@ elif command -v pnpm >/dev/null 2>&1; then
   echo "$!" > /run/amika/example-repo-dev.pid
   echo "$DEMO_SITE_PORT" > /run/amika/example-repo-dev.port
 else
-  echo "pnpm not found; skipping example-repo dev server bootstrap" > /tmp/example-repo-dev.log
+  echo "pnpm not found; skipping example-repo dev server bootstrap" > /tmp/amika/example-repo-dev.log
 fi
