@@ -1,3 +1,7 @@
 [lifecycle]
 
 setup_script = "amika-scripts/setup.sh"
+
+[services.frontend]
+port = 4102
+url_scheme = "https"
