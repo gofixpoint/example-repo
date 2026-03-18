@@ -24,6 +24,10 @@ pnpm preview
 
 Preview also runs on port `9876`.
 
+## Testing
+
+This code has been tested and verified to work inside a sandbox environment.
+
 ## Project structure
 
 - `src/App.tsx`: main demo UI and mocked interactions
