@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 amika sandbox create --git --secret env:ANTHROPIC_API_KEY --name testing-claude-api
 
 CLAUDE_SETTINGS='
