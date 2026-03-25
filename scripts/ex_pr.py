@@ -34,6 +34,7 @@ def ssh(sandbox: str, script: str, *, check: bool = True, tty: bool = False) -> 
 
 
 SANDBOX_NAME = "testing-claude-api"
+REPO_URL = "https://github.com/gofixpoint/example-repo"
 
 CLAUDE_SETTINGS = """{
     "permissions": {
@@ -56,7 +57,7 @@ def main():
     print("Creating sandbox...", file=sys.stderr)
     run([
         AMIKA, "sandbox", "create",
-        "--git",
+        f"--git={REPO_URL}",
         "--secret", "env:ANTHROPIC_API_KEY",
         "--name", SANDBOX_NAME,
     ])
