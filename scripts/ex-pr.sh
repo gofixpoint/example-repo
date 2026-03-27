@@ -25,8 +25,7 @@ mkdir -p \$AMIKA_AGENT_CWD/.claude
 echo '$CLAUDE_GITIGNORE' > \$AMIKA_AGENT_CWD/.claude/.gitignore
 echo '$CLAUDE_SETTINGS' > \$AMIKA_AGENT_CWD/.claude/settings.local.json
 exit 0
-EOF || true
-
+EOF
 
 
 export CLAUDE_UUID=$(uuidgen)
@@ -42,13 +41,13 @@ errcho "Running Claude to make code changes..."
 amika sandbox ssh -t testing-claude-api << EOF 2>/dev/null
 cd \$AMIKA_AGENT_CWD && claude --dangerously-skip-permissions --session-id '$CLAUDE_UUID' -p '$CLAUDE_PROMPT' < /dev/null
 exit 0
-EOF || true
+EOF
 
 # For some reason, Claude does not like single-shotting both the code changes and the git branch/commit/PR. So we need to do it in two steps.
 errcho "Resuming Claude to create git branch and PR..."
 amika sandbox ssh -t testing-claude-api << EOF 2>/dev/null
 cd \$AMIKA_AGENT_CWD && claude --dangerously-skip-permissions --resume '$CLAUDE_UUID' -p 'Make a git branch and commit the changes. Then make a Github PR' < /dev/null
 exit 0
-EOF || true
+EOF
 
 errcho "Done."
