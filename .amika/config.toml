@@ -5,3 +5,7 @@ setup_script = "amika-scripts/setup.sh"
 [services.frontend]
 port = 4102
 url_scheme = "https"
+
+[env]
+MY_VAR = "my-var"
+MY_SECRET = { secret = "my-secret" }
