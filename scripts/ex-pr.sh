@@ -50,4 +50,7 @@ cd \$AMIKA_AGENT_CWD && claude --dangerously-skip-permissions --resume '$CLAUDE_
 exit 0
 EOF
 
+errcho "Removing sandbox..."
+amika sandbox rm --force testing-claude-api
+
 errcho "Done."
