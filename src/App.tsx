@@ -112,7 +112,7 @@ export default function App() {
       <div className="mesh-bg" aria-hidden="true" />
 
       <header className="hero">
-        <p className="eyebrow">Mock Product Demo • Vite + React + TypeScript</p>
+        <p className="eyebrow">Amika & Dylan • Mock Product Demo • Vite + React + TypeScript</p>
         <h1>Build, message, and persist in one isolated runtime.</h1>
         <p className="hero-copy">
           This demo simulates how Amika software factory workflows coordinate sandbox messaging and sandbox filesystem
