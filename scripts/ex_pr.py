@@ -94,6 +94,9 @@ def main():
         f"exit 0"
     ), tty=True, check=False)
 
+    print("Removing sandbox...", file=sys.stderr)
+    run([AMIKA, "sandbox", "rm", "--force", SANDBOX_NAME])
+
     print("Done.", file=sys.stderr)
 
 
