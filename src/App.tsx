@@ -33,6 +33,7 @@ export default function App() {
   const [topic] = useState('factory.events.deploy')
   const [events, setEvents] = useState<DemoEvent[]>([])
   const [fileBody, setFileBody] = useState<string>('')
+  const hasSandbox = sandboxId !== 'not-created'
   const [fileReads, setFileReads] = useState<number>(0)
   const [messagesSent, setMessagesSent] = useState<number>(0)
 
@@ -64,47 +65,28 @@ export default function App() {
   }
 
   function runFactoryTask() {
-    if (sandboxId === 'not-created') {
-      appendEvent('factory', 'Skipped task run: create sandbox first')
-      return
-    }
     appendEvent('factory', `Executed software factory workflow in ${sandboxId}`)
   }
 
   function publishMessage() {
-    if (sandboxId === 'not-created') {
-      appendEvent('messaging', 'Skipped publish: no active sandbox')
-      return
-    }
     setMessagesSent((n) => n + 1)
     appendEvent('messaging', `Published to ${topic} from ${sandboxId}`)
   }
 
   function writeFile() {
-    if (sandboxId === 'not-created') {
-      appendEvent('filesystem', 'Skipped write: no active sandbox')
-      return
-    }
     setFileBody(buildMessage)
     appendEvent('filesystem', `Wrote ${buildMessage.length} bytes to ${filePath}`)
   }
 
   function readFile() {
-    if (!fileBody) {
-      appendEvent('filesystem', `Read ${filePath}: file not found`)
-      return
-    }
     setFileReads((n) => n + 1)
     appendEvent('filesystem', `Read ${buildMessage.length} bytes from ${filePath}`)
   }
 
   function teardownSandbox() {
-    if (sandboxId === 'not-created') {
-      appendEvent('sandbox', 'No sandbox to teardown')
-      return
-    }
     appendEvent('sandbox', `Destroyed sandbox ${sandboxId} and cleaned mount namespace`)
     setSandboxId('not-created')
+    setFileBody('')
   }
 
   return (
@@ -149,22 +131,22 @@ export default function App() {
             <span>Topic: {topic}</span>
           </div>
           <div className="button-grid">
-            <button type="button" onClick={createSandbox}>
+            <button type="button" onClick={createSandbox} disabled={hasSandbox}>
               Create Sandbox
             </button>
-            <button type="button" onClick={runFactoryTask}>
+            <button type="button" onClick={runFactoryTask} disabled={!hasSandbox}>
               Run Factory Job
             </button>
-            <button type="button" onClick={publishMessage}>
+            <button type="button" onClick={publishMessage} disabled={!hasSandbox}>
               Publish Message
             </button>
-            <button type="button" onClick={writeFile}>
+            <button type="button" onClick={writeFile} disabled={!hasSandbox}>
               Write File
             </button>
-            <button type="button" onClick={readFile}>
+            <button type="button" onClick={readFile} disabled={!fileBody}>
               Read File
             </button>
-            <button type="button" onClick={teardownSandbox}>
+            <button type="button" onClick={teardownSandbox} disabled={!hasSandbox}>
               Teardown
             </button>
           </div>

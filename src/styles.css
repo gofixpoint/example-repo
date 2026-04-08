@@ -94,9 +94,16 @@ button {
   transition: transform 140ms ease, filter 140ms ease;
 }
 
-button:hover {
+button:hover:not(:disabled) {
   transform: translateY(-1px);
   filter: saturate(1.1);
+}
+
+button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+  filter: none;
 }
 
 button.ghost {
