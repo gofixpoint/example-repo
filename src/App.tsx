@@ -226,6 +226,20 @@ PUT /v1/fs/write
 { "sandboxId": "${sandboxId}", "path": "${filePath}", "bytes": 78 }`}</code>
         </pre>
       </section>
+
+      <section className="env-vars" aria-label="Environment variables">
+        <h3>Environment Variables</h3>
+        <dl className="env-list">
+          <div>
+            <dt>VITE_FRONTEND_URL</dt>
+            <dd>{import.meta.env.VITE_FRONTEND_URL ?? <span className="env-unset">not set</span>}</dd>
+          </div>
+          <div>
+            <dt>VITE_FRONTEND_PORT</dt>
+            <dd>{import.meta.env.VITE_FRONTEND_PORT ?? <span className="env-unset">not set</span>}</dd>
+          </div>
+        </dl>
+      </section>
     </div>
   )
 }

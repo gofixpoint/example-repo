@@ -11,3 +11,6 @@ MY_VAR = "my-var"
 
 # This secret must be set. Either do it via the UI or from CLI
 MY_SECRET = { secret = "my-secret" }
+
+VITE_FRONTEND_URL = { service = "frontend", field = "url" }
+VITE_FRONTEND_PORT = { service = "frontend", field = "port" }
