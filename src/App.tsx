@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 type EventKind = 'factory' | 'messaging' | 'filesystem' | 'sandbox'
 
@@ -28,7 +28,23 @@ function nextSandboxId() {
   return `sbx-${Math.random().toString(36).slice(2, 8)}`
 }
 
+function useFibonacciCounter() {
+  const [sequence, setSequence] = useState<[number, number]>([0, 1])
+  const value = sequence[0]
+
+  const increment = useCallback(() => {
+    setSequence(([a, b]) => [b, a + b])
+  }, [])
+
+  const reset = useCallback(() => {
+    setSequence([0, 1])
+  }, [])
+
+  return { value, increment, reset }
+}
+
 export default function App() {
+  const fib = useFibonacciCounter()
   const [sandboxId, setSandboxId] = useState<string>('not-created')
   const [topic] = useState('factory.events.deploy')
   const [events, setEvents] = useState<DemoEvent[]>([])
@@ -138,6 +154,17 @@ export default function App() {
         <article>
           <h2>Sandbox Filesystem</h2>
           <p>Ephemeral or persistent mounts with explicit read/write traces and lifecycle-aware cleanup.</p>
+        </article>
+      </section>
+
+      <section className="fibonacci-widget" aria-label="Fibonacci counter widget">
+        <article className="panel">
+          <h3>Fibonacci Counter</h3>
+          <div className="fib-display">{fib.value}</div>
+          <div className="fib-actions">
+            <button type="button" onClick={fib.increment}>Next</button>
+            <button type="button" className="ghost" onClick={fib.reset}>Reset</button>
+          </div>
         </article>
       </section>
 
