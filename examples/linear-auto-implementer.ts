@@ -117,6 +117,16 @@ function runAmika(args: string[], opts: { input?: string } = {}): string {
 // Sandbox lifecycle
 // -----------------------------------------------------------------------------
 
+/**
+ * amika sandbox create \
+ *   --name <sandboxName> \
+ *   --preset <SANDBOX_PRESET> \
+ *   --git=<REPO_PATH> \
+ *   --new-branch <sandboxName> \
+ *   --port <BACKEND_PORT>:<BACKEND_PORT> \
+ *   --port <FRONTEND_PORT>:<FRONTEND_PORT> \
+ *   --yes
+ */
 function createSandbox(sandboxName: string): void {
   console.log(`[amika] creating sandbox ${sandboxName}:`);
   runAmika([
@@ -139,6 +149,9 @@ function createSandbox(sandboxName: string): void {
   ]);
 }
 
+/**
+ * echo "<prompt>" | amika sandbox agent-send <sandboxName> --agent claude
+ */
 function agentSend(sandboxName: string, prompt: string): string {
   console.log(`\n[agent-send → ${sandboxName}]\n${prompt}\n`);
   const out = runAmika(
@@ -157,6 +170,9 @@ function extractPrUrl(output: string): string | null {
   return match ? match[0] : null;
 }
 
+/**
+ * amika sandbox delete <sandboxName> --force
+ */
 function deleteSandbox(sandboxName: string): void {
   console.log(`[amika] deleting sandbox ${sandboxName}`);
   spawnSync("amika", ["sandbox", "delete", sandboxName, "--force"], {
@@ -449,6 +465,9 @@ async function main(): Promise<void> {
   }
 }
 
+/**
+ * amika auth status
+ */
 function ensureAmikaAuth(): void {
   const status = spawnSync("amika", ["auth", "status"], { encoding: "utf8" });
   if (status.status !== 0) {
