@@ -2,8 +2,9 @@
  * End-to-end Linear-driven coding agent workflow on top of the Amika CLI.
  *
  * Trigger: a Linear ticket tagged with the `agent-fix` label. Pickup fires
- * only when the ticket is in a Todo state (`unstarted` type). Tickets in
- * other states (including "In Review") are ignored for now.
+ * only when the ticket is in a Todo state (`unstarted` type) — tickets in
+ * the Backlog are intentionally excluded. Tickets in other states
+ * (including "In Review") are ignored for now.
  *
  * Flow:
  *   1. Poll Linear for tickets labeled `agent-fix` whose state type is
@@ -361,6 +362,9 @@ async function waitForAgentTicket(): Promise<AgentTicket> {
 }
 
 async function pollLinearOnce(): Promise<AgentTicket | null> {
+  console.log(
+    `[linear] query: issues labeled "${LABEL_AGENT_FIX}" in states [${PICKUP_STATE_TYPES.join(", ")}]`,
+  );
   const data = await linearGraphQL<{
     issues: { nodes: AgentTicket[] };
   }>(
@@ -385,7 +389,13 @@ async function pollLinearOnce(): Promise<AgentTicket | null> {
     return null;
   });
   if (!data) return null;
-  return data.issues?.nodes?.find((t) => !seenTicketIds.has(t.id)) ?? null;
+  const tickets = data.issues?.nodes ?? [];
+  if (tickets.length > 0) {
+    console.log(
+      `[linear] found ${tickets.length} ticket(s): ${tickets.map((t) => t.identifier).join(", ")}`,
+    );
+  }
+  return tickets.find((t) => !seenTicketIds.has(t.id)) ?? null;
 }
 
 // -----------------------------------------------------------------------------
