@@ -19,9 +19,8 @@
  *   4. Spin up an Amika sandbox mounted at that branch, exposing the
  *      backend (3001) and frontend (3000) dev servers.
  *
- *   5. Send the ticket body to Claude via `amika sandbox agent-send`,
- *      invoking the `/code` skill so the ticket plan is executed and the
- *      backend/frontend servers come up.
+ *   5. Send the ticket body to Claude via `amika sandbox agent-send` so the
+ *      ticket plan is executed and the backend/frontend servers come up.
  *
  *   6. Ask the agent to open a PR for review. No GH PR monitoring follows.
  * 
@@ -187,8 +186,6 @@ function deleteSandbox(sandboxName: string): void {
 function buildCodePrompt(issue: AgentTicket): string {
   const description = issue.description?.trim() ?? "(no description)";
   return [
-    `/code`,
-    ``,
     `Linear ticket: ${issue.identifier} — ${issue.title}`,
     issue.url ? `URL: ${issue.url}` : "",
     ``,
@@ -430,9 +427,9 @@ async function main(): Promise<void> {
       createSandbox(sandboxName);
 
       try {
-        // 5. Hand the ticket plan to the agent via the `/code` skill. The
-        //    same prompt asks the agent to start the backend/frontend
-        //    servers so the change is exercised end-to-end.
+        // 5. Hand the ticket plan to the agent. The same prompt asks the
+        //    agent to start the backend/frontend servers so the change is
+        //    exercised end-to-end.
         agentSend(sandboxName, buildCodePrompt(ticket));
 
         // 6. Ask the agent to open a PR. We don't monitor the PR from here,
