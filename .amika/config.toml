@@ -6,6 +6,10 @@ setup_script = "amika-scripts/setup.sh"
 port = 4102
 url_scheme = "https"
 
+[services.backend]
+port = 3001
+url_scheme = "http"
+
 [env]
 MY_VAR = "my-var"
 

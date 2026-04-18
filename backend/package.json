@@ -1,0 +1,9 @@
+{
+  "name": "amika-demo-backend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "test": "node --test server.test.js"
+  }
+}
