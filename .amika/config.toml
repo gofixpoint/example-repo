@@ -2,6 +2,9 @@
 
 setup_script = "amika-scripts/setup.sh"
 
+[agent_credentials]
+claude = { type = "api_key" }
+
 [services.frontend]
 port = 4102
 url_scheme = "https"
