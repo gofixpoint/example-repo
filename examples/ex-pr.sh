@@ -4,8 +4,15 @@
 
 errcho() { echo "$@" >&2; }
 
+# Store your Anthropic API key in the vault.
+amika secret claude push \
+	--type api_key \
+	--from-file /tmp/amikadev/secrets/CLAUDE_API_KEY
+
 errcho "Creating sandbox..."
-amika sandbox create --git --secret env:ANTHROPIC_API_KEY --name testing-claude-api
+amika sandbox create --git \
+	--agent-credential-type claude=api-key \
+	--name testing-claude-api
 
 export CLAUDE_SETTINGS='
 {
