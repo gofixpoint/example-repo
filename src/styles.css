@@ -1,9 +1,9 @@
 :root {
-  --bg: #051d2b;
-  --bg-2: #08344a;
-  --surface: #0d2736cc;
-  --surface-2: #123649;
-  --line: #2f6c87;
+  --bg: #2b0505;
+  --bg-2: #4a0808;
+  --surface: #360d0dcc;
+  --surface-2: #491212;
+  --line: #872f2f;
   --text: #ebfbff;
   --muted: #a6ccd9;
   --accent: #1dd6a5;
@@ -20,7 +20,7 @@ body {
   margin: 0;
   font-family: var(--sans);
   color: var(--text);
-  background: radial-gradient(circle at 85% 10%, #106f72 0%, var(--bg) 45%, #02111b 100%);
+  background: radial-gradient(circle at 85% 10%, #721010 0%, var(--bg) 45%, #1b0202 100%);
 }
 
 .page-shell {
@@ -303,7 +303,7 @@ pre {
   padding: 1rem;
   border-radius: 10px;
   border: 1px solid var(--line);
-  background: #031724;
+  background: #240303;
   overflow: auto;
 }
 
