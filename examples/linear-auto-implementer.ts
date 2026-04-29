@@ -8,13 +8,15 @@
  *
  * Flow:
  *   1. Poll Linear for tickets labeled `agent-fix` whose state type is
- *      `unstarted` (Todo). The `waitForAgentTicket()` function is the seam —
- *      swap it for a real webhook handler (Linear signs payloads with
- *      SHA-256) without touching the rest of the pipeline.
+ *      `unstarted` (Todo). Each poll cycle picks up all matching tickets
+ *      and processes them concurrently (up to MAX_CONCURRENT_TICKETS).
+ *      The polling loop is the seam — swap it for a real webhook handler
+ *      (Linear signs payloads with SHA-256) without touching the rest of
+ *      the pipeline.
  *
  *   2. If the picked-up ticket still carries a stale `agent-done` label
  *      from a prior run, strip it so the re-run starts clean.
- * 
+ *
  *   3. Create a git branch off the current branch, named after the ticket.
  *
  *   4. Spin up an Amika sandbox mounted at that branch, exposing the
@@ -24,7 +26,7 @@
  *      ticket plan is executed and the backend/frontend servers come up.
  *
  *   6. Ask the agent to open a PR for review. No GH PR monitoring follows.
- * 
+ *
  *   7. Post a Linear comment with the PR URL (parsed from the agent's
  *      reply), remove the `agent-fix` label, add the `agent-done` label,
  *      and move the ticket to the "In Review" workflow state so a human
@@ -47,6 +49,7 @@
  *   LINEAR_AGENT_DONE_LABEL       handoff label (default "agent-done")
  *   LINEAR_REVIEW_STATE_NAME      state name that re-triggers pickup
  *                                 (default "In Review")
+ *   MAX_CONCURRENT_TICKETS        max tickets processed at once (default 5)
  *   AMIKA_SANDBOX_IMAGE           override the sandbox image
  *   AMIKA_SANDBOX_PRESET          coder | coder-dind (default coder)
  *   AMIKA_REPO_PATH               override the repo path (default: cwd)
@@ -73,6 +76,7 @@ const PICKUP_STATE_TYPES = ["unstarted"];
 // "In Review"; re-applying `agent-fix` triggers another pass on them.
 const REVIEW_STATE_NAME =
   process.env.LINEAR_REVIEW_STATE_NAME ?? "In Review";
+const MAX_CONCURRENT = Number(process.env.MAX_CONCURRENT_TICKETS ?? 5);
 const REPO_PATH = process.env.AMIKA_REPO_PATH ?? process.cwd();
 const SANDBOX_PRESET = process.env.AMIKA_SANDBOX_PRESET ?? "coder";
 const BACKEND_PORT = 3001;
@@ -101,16 +105,37 @@ interface AgentTicket {
 // Amika CLI helpers
 // -----------------------------------------------------------------------------
 
-function runAmika(args: string[], opts: { input?: string } = {}): string {
-  const result = spawnSync("amika", args, {
-    input: opts.input,
-    encoding: "utf8",
-    stdio: ["pipe", "pipe", "inherit"],
+function runAmika(
+  args: string[],
+  opts: { input?: string } = {},
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const proc = spawn("amika", args, {
+      stdio: ["pipe", "pipe", "inherit"],
+    });
+
+    let stdout = "";
+    proc.stdout.on("data", (chunk: Buffer) => {
+      stdout += chunk.toString();
+    });
+
+    if (opts.input) {
+      proc.stdin.write(opts.input);
+      proc.stdin.end();
+    } else {
+      proc.stdin.end();
+    }
+
+    proc.on("close", (code) => {
+      if (code !== 0) {
+        reject(new Error(`amika ${args.join(" ")} exited with ${code}`));
+      } else {
+        resolve(stdout);
+      }
+    });
+
+    proc.on("error", reject);
   });
-  if (result.status !== 0) {
-    throw new Error(`amika ${args.join(" ")} exited with ${result.status}`);
-  }
-  return result.stdout ?? "";
 }
 
 // -----------------------------------------------------------------------------
@@ -127,9 +152,9 @@ function runAmika(args: string[], opts: { input?: string } = {}): string {
  *   --port <FRONTEND_PORT>:<FRONTEND_PORT> \
  *   --yes
  */
-function createSandbox(sandboxName: string): void {
+async function createSandbox(sandboxName: string): Promise<void> {
   console.log(`[amika] creating sandbox ${sandboxName}:`);
-  runAmika([
+  await runAmika([
     "sandbox",
     "create",
     "--name",
@@ -152,9 +177,9 @@ function createSandbox(sandboxName: string): void {
 /**
  * echo "<prompt>" | amika sandbox agent-send <sandboxName> --agent claude
  */
-function agentSend(sandboxName: string, prompt: string): string {
+async function agentSend(sandboxName: string, prompt: string): Promise<string> {
   console.log(`\n[agent-send → ${sandboxName}]\n${prompt}\n`);
-  const out = runAmika(
+  const out = await runAmika(
     ["sandbox", "agent-send", sandboxName, "--agent", "claude"],
     { input: prompt },
   );
@@ -173,10 +198,16 @@ function extractPrUrl(output: string): string | null {
 /**
  * amika sandbox delete <sandboxName> --force
  */
-function deleteSandbox(sandboxName: string): void {
+async function deleteSandbox(sandboxName: string): Promise<void> {
   console.log(`[amika] deleting sandbox ${sandboxName}`);
-  spawnSync("amika", ["sandbox", "delete", sandboxName, "--force"], {
-    stdio: "inherit",
+  return new Promise<void>((resolve) => {
+    const proc = spawn(
+      "amika",
+      ["sandbox", "delete", sandboxName, "--force"],
+      { stdio: "inherit" },
+    );
+    proc.on("close", () => resolve());
+    proc.on("error", () => resolve());
   });
 }
 
@@ -197,6 +228,7 @@ function buildCodePrompt(issue: AgentTicket): string {
     `- start the backend dev server on port ${BACKEND_PORT}`,
     `- start the frontend dev server on port ${FRONTEND_PORT}`,
     `- verify the feature end-to-end, then commit.`,
+    `- leave a comment on the Linear issue summarizing the changes you made.`,
   ]
     .filter(Boolean)
     .join("\n");
@@ -335,42 +367,20 @@ async function addComment(issueId: string, body: string): Promise<void> {
 // -----------------------------------------------------------------------------
 // Ticket source
 //
-// `waitForAgentTicket()` is the seam. Today it busy-waits on Linear's GraphQL
-// API; swap it for a webhook-backed implementation (e.g. push each verified
-// payload onto an in-memory queue and `await queue.shift()`) without touching
-// the orchestration below.
+// `pollForNewTickets()` is the seam. Today it polls Linear's GraphQL API;
+// swap it for a webhook-backed implementation (e.g. push each verified payload
+// onto an in-memory queue) without touching the orchestration below.
 // -----------------------------------------------------------------------------
 
 const seenTicketIds = new Set<string>();
 
-async function waitForAgentTicket(): Promise<AgentTicket> {
-  if (!LINEAR_API_KEY) {
-    throw new Error("LINEAR_API_KEY is required for polling mode");
-  }
-  console.log(
-    `[linear] polling every ${LINEAR_POLL_INTERVAL_MS}ms for tickets labeled ` +
-      `"${LABEL_AGENT_FIX}" in states [${PICKUP_STATE_TYPES.join(", ")}]`,
-  );
-  while (true) {
-    const ticket = await pollLinearOnce();
-    if (ticket && !seenTicketIds.has(ticket.id)) {
-      seenTicketIds.add(ticket.id);
-      return ticket;
-    }
-    await sleep(LINEAR_POLL_INTERVAL_MS);
-  }
-}
-
-async function pollLinearOnce(): Promise<AgentTicket | null> {
-  console.log(
-    `[linear] query: issues labeled "${LABEL_AGENT_FIX}" in states [${PICKUP_STATE_TYPES.join(", ")}]`,
-  );
+async function pollForNewTickets(): Promise<AgentTicket[]> {
   const data = await linearGraphQL<{
     issues: { nodes: AgentTicket[] };
   }>(
     `query AgentTickets($label: String!, $stateTypes: [String!]!) {
       issues(
-        first: 5,
+        first: 50,
         filter: {
           labels: { name: { eq: $label } },
           state: { type: { in: $stateTypes } }
@@ -388,14 +398,76 @@ async function pollLinearOnce(): Promise<AgentTicket | null> {
     console.error(`[linear] poll failed:`, err);
     return null;
   });
-  if (!data) return null;
-  const tickets = data.issues?.nodes ?? [];
+  if (!data) return [];
+  const tickets = (data.issues?.nodes ?? []).filter(
+    (t) => !seenTicketIds.has(t.id),
+  );
   if (tickets.length > 0) {
     console.log(
-      `[linear] found ${tickets.length} ticket(s): ${tickets.map((t) => t.identifier).join(", ")}`,
+      `[linear] found ${tickets.length} new ticket(s): ${tickets.map((t) => t.identifier).join(", ")}`,
     );
   }
-  return tickets.find((t) => !seenTicketIds.has(t.id)) ?? null;
+  return tickets;
+}
+
+// -----------------------------------------------------------------------------
+// Per-ticket processing
+// -----------------------------------------------------------------------------
+
+async function processTicket(ticket: AgentTicket): Promise<void> {
+  // Strip a stale `agent-done` label from a previous run (if any) so
+  // re-processing starts clean.
+  const hasAgentDone = ticket.labels?.nodes?.some(
+    (l) => l.name === LABEL_AGENT_DONE,
+  );
+  if (hasAgentDone) {
+    await removeLabel(ticket.id, LABEL_AGENT_DONE);
+  }
+
+  // Suffix with a compact timestamp so repeated runs against the same
+  // ticket don't collide on the remote sandbox name (409 conflict).
+  const runSuffix = new Date()
+    .toISOString()
+    .replace(/[-:T.]/g, "")
+    .slice(0, 14); // YYYYMMDDHHMMSS
+  // No `/` in the name — downstream routes embed it in the URL path.
+  const sandboxName = `linear-agent-${ticket.identifier.toLowerCase()}-${runSuffix}`;
+
+  // Create a branch off the current branch, named after the ticket.
+  // Done inside the sandbox via `--new-branch` so the host repo state
+  // is never mutated.
+  await createSandbox(sandboxName);
+
+  try {
+    // Hand the ticket plan to the agent. The same prompt asks the
+    // agent to start the backend/frontend servers so the change is
+    // exercised end-to-end.
+    await agentSend(sandboxName, buildCodePrompt(ticket));
+
+    // Ask the agent to open a PR. We don't monitor the PR from here,
+    // but we do parse the URL out of its reply so we can post a
+    // Linear comment linking the ticket to the PR.
+    const prOutput = await agentSend(sandboxName, PR_PROMPT);
+    const prUrl = extractPrUrl(prOutput);
+    if (prUrl) {
+      await addComment(
+        ticket.id,
+        `Agent opened a PR for review: ${prUrl}`,
+      );
+    } else {
+      console.warn(
+        `[linear-agent] could not extract PR URL from agent output — skipping Linear comment`,
+      );
+    }
+
+    // Hand off: remove `agent-fix`, add `agent-done`, move the
+    // ticket into "In Review" so a human can take a look.
+    await removeLabel(ticket.id, LABEL_AGENT_FIX);
+    await addLabel(ticket.id, LABEL_AGENT_DONE);
+    await moveToState(ticket.id, REVIEW_STATE_NAME);
+  } finally {
+    await deleteSandbox(sandboxName);
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -405,70 +477,49 @@ async function pollLinearOnce(): Promise<AgentTicket | null> {
 async function main(): Promise<void> {
   ensureAmikaAuth();
 
+  if (!LINEAR_API_KEY) {
+    throw new Error("LINEAR_API_KEY is required for polling mode");
+  }
+
+  console.log(
+    `[linear-agent] polling every ${LINEAR_POLL_INTERVAL_MS}ms for ` +
+      `"${LABEL_AGENT_FIX}" tickets in states [${PICKUP_STATE_TYPES.join(", ")}] ` +
+      `(max concurrency: ${MAX_CONCURRENT})`,
+  );
+
+  const inFlight = new Map<string, Promise<void>>();
+
   while (true) {
-    // 1. A Linear ticket labeled `agent-fix` in a backlog/todo state is the
-    //    trigger. `waitForAgentTicket()` busy-waits today; replace it with a
-    //    webhook-backed queue to go push-based.
-    const ticket = await waitForAgentTicket();
-    console.log(`[linear-agent] picked up ${ticket.identifier} — ${ticket.title}`);
+    const tickets = await pollForNewTickets();
 
-    // 2. Strip a stale `agent-done` label from a previous run (if any) so
-    //    re-processing starts clean.
-    const hasAgentDone = ticket.labels?.nodes?.some(
-      (l) => l.name === LABEL_AGENT_DONE,
-    );
-    if (hasAgentDone) {
-      await removeLabel(ticket.id, LABEL_AGENT_DONE);
-    }
-
-    // Suffix with a compact timestamp so repeated runs against the same
-    // ticket don't collide on the remote sandbox name (409 conflict).
-    const runSuffix = new Date()
-      .toISOString()
-      .replace(/[-:T.]/g, "")
-      .slice(0, 14); // YYYYMMDDHHMMSS
-    // No `/` in the name — downstream routes embed it in the URL path.
-    const sandboxName = `linear-agent-${ticket.identifier.toLowerCase()}-${runSuffix}`;
-    try {
-      // 3. Create a branch off the current branch, named after the ticket.
-      //    Done inside the sandbox via `--new-branch` so the host repo state
-      //    is never mutated.
-      // 4. Spin up the Amika sandbox mounted at that branch.
-      createSandbox(sandboxName);
-
-      try {
-        // 5. Hand the ticket plan to the agent. The same prompt asks the
-        //    agent to start the backend/frontend servers so the change is
-        //    exercised end-to-end.
-        agentSend(sandboxName, buildCodePrompt(ticket));
-
-        // 6. Ask the agent to open a PR. We don't monitor the PR from here,
-        //    but we do parse the URL out of its reply so we can post a
-        //    Linear comment linking the ticket to the PR.
-        const prOutput = agentSend(sandboxName, PR_PROMPT);
-        const prUrl = extractPrUrl(prOutput);
-        if (prUrl) {
-          await addComment(
-            ticket.id,
-            `Agent opened a PR for review: ${prUrl}`,
-          );
-        } else {
-          console.warn(
-            `[linear-agent] could not extract PR URL from agent output — skipping Linear comment`,
-          );
-        }
-
-        // 7. Hand off: remove `agent-fix`, add `agent-done`, move the
-        //    ticket into "In Review" so a human can take a look.
-        await removeLabel(ticket.id, LABEL_AGENT_FIX);
-        await addLabel(ticket.id, LABEL_AGENT_DONE);
-        await moveToState(ticket.id, REVIEW_STATE_NAME);
-      } finally {
-        deleteSandbox(sandboxName);
+    for (const ticket of tickets) {
+      if (inFlight.size >= MAX_CONCURRENT) {
+        console.log(
+          `[linear-agent] at concurrency limit (${MAX_CONCURRENT}), ` +
+            `deferring remaining tickets to next poll`,
+        );
+        break;
       }
-    } catch (err) {
-      console.error(`[linear-agent] ticket ${ticket.identifier} failed:`, err);
+
+      seenTicketIds.add(ticket.id);
+      console.log(
+        `[linear-agent] picked up ${ticket.identifier} — ${ticket.title}`,
+      );
+
+      const promise = processTicket(ticket)
+        .catch((err) => {
+          console.error(
+            `[linear-agent] ticket ${ticket.identifier} failed:`,
+            err,
+          );
+        })
+        .finally(() => {
+          inFlight.delete(ticket.id);
+        });
+      inFlight.set(ticket.id, promise);
     }
+
+    await sleep(LINEAR_POLL_INTERVAL_MS);
   }
 }
 
