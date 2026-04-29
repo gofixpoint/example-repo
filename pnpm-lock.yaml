@@ -8,6 +8,12 @@ importers:
 
   .:
     dependencies:
+      '@wterm/core':
+        specifier: ^0.2.1
+        version: 0.2.1
+      '@wterm/react':
+        specifier: ^0.2.1
+        version: 0.2.1(@wterm/dom@0.2.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -435,6 +441,19 @@ packages:
     engines: {node: ^14.18.0 || >=16.0.0}
     peerDependencies:
       vite: ^4.2.0 || ^5.0.0 || ^6.0.0 || ^7.0.0
+
+  '@wterm/core@0.2.1':
+    resolution: {integrity: sha512-g+xrTei6qovjH0QI/HFyAyV2TCAuH/d3FJl2Vh/aObDX6FqA8PjwkafBwESSOaEvSeUQhU5d37ELtUSWMZP46A==}
+
+  '@wterm/dom@0.2.1':
+    resolution: {integrity: sha512-ojJqz6oJku/rxBOObLdq+Jd7gNwrCtx1jY11hP/x2/kcLLaEvbIsAmrjuVBxgTyFxBcBq0Ru6TdFbDdfMBH+vw==}
+
+  '@wterm/react@0.2.1':
+    resolution: {integrity: sha512-pZEIcMvsSd/tmMM8aXqO/EseRNq25MPEH0cG+A0nS1BCBuhC3tY8GQKJ4mUHlYS1FdYcsIRF6lHeuV0o/o12pg==}
+    peerDependencies:
+      '@wterm/dom': 0.2.1
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
 
   baseline-browser-mapping@2.10.0:
     resolution: {integrity: sha512-lIyg0szRfYbiy67j9KN8IyeD7q7hcmqnJ1ddWmNt19ItGpNN64mnllmxUNFIOdOm6by97jlL6wfpTTJrmnjWAA==}
@@ -928,6 +947,18 @@ snapshots:
       vite: 5.4.21(@types/node@25.6.0)
     transitivePeerDependencies:
       - supports-color
+
+  '@wterm/core@0.2.1': {}
+
+  '@wterm/dom@0.2.1':
+    dependencies:
+      '@wterm/core': 0.2.1
+
+  '@wterm/react@0.2.1(@wterm/dom@0.2.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@wterm/dom': 0.2.1
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
   baseline-browser-mapping@2.10.0: {}
 
