@@ -47,7 +47,8 @@ body {
 .pillars article,
 .architecture,
 .api,
-.env-vars {
+.env-vars,
+.terminal-section {
   background: var(--surface);
   border: 1px solid color-mix(in srgb, var(--line), white 10%);
   border-radius: 14px;
@@ -139,8 +140,23 @@ button.ghost {
 .panel h3,
 .architecture h3,
 .api h3,
-.env-vars h3 {
+.env-vars h3,
+.terminal-section h3 {
   margin-top: 0;
+}
+
+.terminal-section {
+  padding: 1rem;
+  animation: slide-in 550ms ease-out;
+}
+
+.terminal-container {
+  margin-top: 0.75rem;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #031724;
+  min-height: 300px;
 }
 
 .meta {

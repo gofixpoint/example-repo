@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react'
+import { Terminal } from '@wterm/react'
+import '@wterm/react/css'
 
 type EventKind = 'factory' | 'messaging' | 'filesystem' | 'sandbox'
 
@@ -125,6 +127,23 @@ export default function App() {
           </button>
         </div>
       </header>
+
+      <section className="terminal-section" aria-label="Interactive terminal">
+        <h3>Interactive Terminal</h3>
+        <div className="terminal-container">
+          <Terminal
+            theme="default"
+            onData={(data) => {
+              console.log('Terminal input:', data)
+            }}
+            onReady={(wt) => {
+              wt.write('Welcome to wterm!\r\n')
+              wt.write('This is a web-based terminal emulator.\r\n')
+              wt.write('$ ')
+            }}
+          />
+        </div>
+      </section>
 
       <section className="pillars" aria-label="Product pillars">
         <article>
