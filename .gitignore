@@ -7,6 +7,10 @@ dist/
 vite.config.js
 vite.config.d.ts
 
+# Playwright MCP runtime artifacts
+.playwright-mcp/
+wterm-verification.png
+
 # Logs
 *.log
 npm-debug.log*
