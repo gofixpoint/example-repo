@@ -47,11 +47,38 @@ body {
 .pillars article,
 .architecture,
 .api,
-.env-vars {
+.env-vars,
+.terminal-section {
   background: var(--surface);
   border: 1px solid color-mix(in srgb, var(--line), white 10%);
   border-radius: 14px;
   backdrop-filter: blur(4px);
+}
+
+.terminal-section {
+  padding: 1rem;
+  animation: slide-in 600ms ease-out;
+}
+
+.terminal-section h3 {
+  margin-top: 0;
+}
+
+.terminal-copy {
+  color: var(--muted);
+  margin-top: 0;
+}
+
+.terminal-copy code {
+  background: var(--surface-2);
+  padding: 0.05rem 0.35rem;
+  border-radius: 5px;
+  border: 1px solid var(--line);
+}
+
+.terminal-section .wterm {
+  width: 100%;
+  border: 1px solid var(--line);
 }
 
 .hero {

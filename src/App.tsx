@@ -1,4 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
+import { Terminal } from '@wterm/react'
+import type { WTerm } from '@wterm/dom'
 
 type EventKind = 'factory' | 'messaging' | 'filesystem' | 'sandbox'
 
@@ -28,6 +30,8 @@ function nextSandboxId() {
   return `sbx-${Math.random().toString(36).slice(2, 8)}`
 }
 
+const PROMPT = '\x1b[1;32mamika\x1b[0m:\x1b[1;34m~\x1b[0m$ '
+
 export default function App() {
   const [sandboxId, setSandboxId] = useState<string>('not-created')
   const [topic] = useState('factory.events.deploy')
@@ -35,6 +39,65 @@ export default function App() {
   const [fileBody, setFileBody] = useState<string>('')
   const [fileReads, setFileReads] = useState<number>(0)
   const [messagesSent, setMessagesSent] = useState<number>(0)
+
+  const wtRef = useRef<WTerm | null>(null)
+  const inputBufRef = useRef<string>('')
+
+  const handleReady = useCallback((wt: WTerm) => {
+    wtRef.current = wt
+    wt.write('Welcome to the Amika demo terminal (mocked).\r\n')
+    wt.write('Type "help" for available commands.\r\n\r\n')
+    wt.write(PROMPT)
+  }, [])
+
+  const runCommand = useCallback((wt: WTerm, line: string) => {
+    const trimmed = line.trim()
+    if (trimmed === '') return
+    const [cmd, ...args] = trimmed.split(/\s+/)
+    switch (cmd) {
+      case 'help':
+        wt.write('Available commands: help, echo, clear, whoami, date\r\n')
+        break
+      case 'echo':
+        wt.write(`${args.join(' ')}\r\n`)
+        break
+      case 'clear':
+        wt.write('\x1b[2J\x1b[H')
+        break
+      case 'whoami':
+        wt.write('amika-demo\r\n')
+        break
+      case 'date':
+        wt.write(`${new Date().toString()}\r\n`)
+        break
+      default:
+        wt.write(`${cmd}: command not found\r\n`)
+    }
+  }, [])
+
+  const handleData = useCallback(
+    (data: string) => {
+      const wt = wtRef.current
+      if (!wt) return
+      for (const ch of data) {
+        if (ch === '\r' || ch === '\n') {
+          wt.write('\r\n')
+          runCommand(wt, inputBufRef.current)
+          inputBufRef.current = ''
+          wt.write(PROMPT)
+        } else if (ch === '\x7f' || ch === '\b') {
+          if (inputBufRef.current.length > 0) {
+            inputBufRef.current = inputBufRef.current.slice(0, -1)
+            wt.write('\b \b')
+          }
+        } else if (ch >= ' ' && ch !== '\x1b') {
+          inputBufRef.current += ch
+          wt.write(ch)
+        }
+      }
+    },
+    [runCommand]
+  )
 
   const counts = useMemo(() => {
     return {
@@ -125,6 +188,22 @@ export default function App() {
           </button>
         </div>
       </header>
+
+      <section className="terminal-section" aria-label="Embedded terminal">
+        <h3>Embedded Terminal</h3>
+        <p className="terminal-copy">
+          Mocked shell rendered with <code>@wterm/react</code>. Try <code>help</code>, <code>echo</code>, or{' '}
+          <code>clear</code>.
+        </p>
+        <Terminal
+          cols={100}
+          rows={16}
+          autoResize={false}
+          cursorBlink
+          onReady={handleReady}
+          onData={handleData}
+        />
+      </section>
 
       <section className="pillars" aria-label="Product pillars">
         <article>
