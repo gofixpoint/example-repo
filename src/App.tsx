@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
-import { Terminal } from '@wterm/react'
 import '@wterm/react/css'
+import MockTerminal from './MockTerminal'
 
 type EventKind = 'factory' | 'messaging' | 'filesystem' | 'sandbox'
 
@@ -134,7 +134,7 @@ export default function App() {
           <p>Powered by wterm — a WebAssembly terminal emulator.</p>
         </div>
         <div className="terminal-card-body">
-          <Terminal theme="monokai" cursorBlink autoResize />
+          <MockTerminal />
         </div>
       </section>
 
