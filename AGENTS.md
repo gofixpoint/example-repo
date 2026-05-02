@@ -15,8 +15,17 @@ Each tab is a real route:
 - `/bash` — Terminal: connects to a real shell on the host via a WebSocket
   (`/ws/bash`) backed by `vite-plugin-pty.ts` + `node-pty`.
 - `/agent` — Agent: chat UI that sends prompts over a WebSocket (`/ws/agent`)
-  to `vite-plugin-agent.ts`, which spawns `claude -p --session-id <uuid>` per
-  prompt and streams stdout back. Session UUIDs are persisted in localStorage.
+  to `vite-plugin-agent.ts`. The plugin defines an `IAgent` interface with two
+  implementations (`ClaudeAgent`, `CodexAgent`); the prompt frame's `agent`
+  field selects which one to spawn. All session state (current id, history)
+  lives in browser localStorage, namespaced per agent. For Codex specifically,
+  the auto-generated thread UUID is parsed from the `thread.started` JSONL
+  event and pushed back to the browser via a `session_assigned` event so the
+  next prompt can resume.
+
+  Codex's settings live under `CODEX_HOME` (default `~/.codex/`); the dev
+  server inherits that env var via `process.env`, so logged-in credentials
+  work without extra wiring.
 
 ⚠️ Both backend endpoints are intentionally **unauthenticated** and the dev
 server binds to `0.0.0.0` (`server.host: true` in `vite.config.ts`), so anyone
@@ -46,7 +55,8 @@ Default port: `9876`
 - `src/styles.css` contains visual system and responsive behavior.
 - `vite.config.ts` sets server defaults and registers the dev-mode plugins.
 - `vite-plugin-pty.ts` runs the `/ws/bash` → node-pty backend in dev mode.
-- `vite-plugin-agent.ts` runs the `/ws/agent` → `claude -p` backend in dev mode.
+- `vite-plugin-agent.ts` runs the `/ws/agent` backend in dev mode (IAgent +
+  ClaudeAgent + CodexAgent).
 
 ## Agent guidance
 

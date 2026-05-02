@@ -406,6 +406,33 @@ code {
   margin: 0;
 }
 
+.agent-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.agent-select {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.3rem 0.5rem;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.agent-select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.agent-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .warning-pill {
   font-family: var(--mono);
   font-size: 0.7rem;

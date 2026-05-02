@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import Terminal from './Terminal'
-import Agent from './Agent'
+import Agent, { type AgentName } from './Agent'
 
 type EventKind = 'factory' | 'messaging' | 'filesystem' | 'sandbox'
 type Tab = 'demo' | 'terminal' | 'agent'
@@ -31,15 +31,43 @@ function nextSandboxId() {
   return `sbx-${Math.random().toString(36).slice(2, 8)}`
 }
 
-const SESSION_KEY = 'agent.sessionId'
+const SELECTED_AGENT_KEY = 'agent.selected'
+const CLAUDE_SESSION_KEY = 'agent.claude.currentSessionId'
+const CLAUDE_STARTED_KEY = 'agent.claude.startedSessions'
+const CODEX_SESSION_KEY = 'agent.codex.currentSessionId'
+const CODEX_KNOWN_KEY = 'agent.codex.knownSessions'
+const LEGACY_SESSION_KEY = 'agent.sessionId'
+const LEGACY_STARTED_KEY = 'agent.startedSessions'
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-function loadSessionId(): string {
-  const stored = localStorage.getItem(SESSION_KEY)
+function migrateLegacyKeys() {
+  const legacyId = localStorage.getItem(LEGACY_SESSION_KEY)
+  if (legacyId && !localStorage.getItem(CLAUDE_SESSION_KEY)) {
+    localStorage.setItem(CLAUDE_SESSION_KEY, legacyId)
+  }
+  const legacyStarted = localStorage.getItem(LEGACY_STARTED_KEY)
+  if (legacyStarted && !localStorage.getItem(CLAUDE_STARTED_KEY)) {
+    localStorage.setItem(CLAUDE_STARTED_KEY, legacyStarted)
+  }
+}
+
+function loadSelectedAgent(): AgentName {
+  const stored = localStorage.getItem(SELECTED_AGENT_KEY)
+  return stored === 'codex' ? 'codex' : 'claude'
+}
+
+function loadClaudeSessionId(): string {
+  migrateLegacyKeys()
+  const stored = localStorage.getItem(CLAUDE_SESSION_KEY)
   if (stored && UUID_RE.test(stored)) return stored
   const fresh = crypto.randomUUID()
-  localStorage.setItem(SESSION_KEY, fresh)
+  localStorage.setItem(CLAUDE_SESSION_KEY, fresh)
   return fresh
+}
+
+function loadCodexSessionId(): string {
+  const stored = localStorage.getItem(CODEX_SESSION_KEY)
+  return stored && UUID_RE.test(stored) ? stored : ''
 }
 
 const TAB_TO_PATH: Record<Tab, string> = {
@@ -62,7 +90,10 @@ export default function App() {
   const [fileReads, setFileReads] = useState<number>(0)
   const [messagesSent, setMessagesSent] = useState<number>(0)
   const [tab, setTab] = useState<Tab>(() => tabFromPath(window.location.pathname))
-  const [sessionId, setSessionId] = useState<string>(() => loadSessionId())
+  const [selectedAgent, setSelectedAgent] = useState<AgentName>(() => loadSelectedAgent())
+  const [claudeSessionId, setClaudeSessionId] = useState<string>(() => loadClaudeSessionId())
+  const [codexSessionId, setCodexSessionId] = useState<string>(() => loadCodexSessionId())
+  const sessionId = selectedAgent === 'claude' ? claudeSessionId : codexSessionId
 
   useEffect(() => {
     const onPop = () => setTab(tabFromPath(window.location.pathname))
@@ -79,10 +110,36 @@ export default function App() {
   }
 
   function newSession() {
-    const fresh = crypto.randomUUID()
-    localStorage.setItem(SESSION_KEY, fresh)
-    setSessionId(fresh)
+    if (selectedAgent === 'claude') {
+      const fresh = crypto.randomUUID()
+      localStorage.setItem(CLAUDE_SESSION_KEY, fresh)
+      setClaudeSessionId(fresh)
+    } else {
+      localStorage.removeItem(CODEX_SESSION_KEY)
+      setCodexSessionId('')
+    }
   }
+
+  function selectAgent(next: AgentName) {
+    localStorage.setItem(SELECTED_AGENT_KEY, next)
+    setSelectedAgent(next)
+  }
+
+  const handleCodexSessionAssigned = useCallback((id: string) => {
+    if (!UUID_RE.test(id)) return
+    localStorage.setItem(CODEX_SESSION_KEY, id)
+    setCodexSessionId(id)
+    try {
+      const raw = localStorage.getItem(CODEX_KNOWN_KEY)
+      const arr: unknown = raw ? JSON.parse(raw) : []
+      const known = Array.isArray(arr) ? arr.filter((x): x is string => typeof x === 'string') : []
+      if (!known.includes(id)) {
+        localStorage.setItem(CODEX_KNOWN_KEY, JSON.stringify([...known, id]))
+      }
+    } catch {
+      localStorage.setItem(CODEX_KNOWN_KEY, JSON.stringify([id]))
+    }
+  }, [])
 
   const counts = useMemo(() => {
     return {
@@ -159,14 +216,16 @@ export default function App() {
     <div className="page-shell">
       <div className="mesh-bg" aria-hidden="true" />
 
-      <div className="session-bar">
-        <button type="button" className="ghost" onClick={newSession}>
-          New Session
-        </button>
-        <code className="session-id" title={sessionId}>
-          {sessionId}
-        </code>
-      </div>
+      {tab === 'agent' && (
+        <div className="session-bar">
+          <button type="button" className="ghost" onClick={newSession}>
+            New Session
+          </button>
+          <code className="session-id" title={sessionId || 'no session yet'}>
+            {selectedAgent}: {sessionId || '(none — next prompt creates one)'}
+          </code>
+        </div>
+      )}
 
       <nav className="tabs" aria-label="Sections">
         <TabLink target="demo" current={tab} onNavigate={navigate}>
@@ -181,12 +240,20 @@ export default function App() {
       </nav>
 
       {tab === 'terminal' && <Terminal />}
-      {tab === 'agent' && <Agent sessionId={sessionId} />}
+      {tab === 'agent' && (
+        <Agent
+          key={selectedAgent}
+          agent={selectedAgent}
+          sessionId={sessionId}
+          onSelectAgent={selectAgent}
+          onCodexSessionAssigned={handleCodexSessionAssigned}
+        />
+      )}
       {tab !== 'demo' ? null : (
       <>
       <header className="hero">
         <p className="eyebrow">Mock Product Demo • Vite + React + TypeScript</p>
-        <h1>Build, message, and persist in one isolated runtime.</h1>
+        <h1>hello world</h1>
         <p className="hero-copy">
           This demo simulates how Amika software factory workflows coordinate sandbox messaging and sandbox filesystem
           operations for reproducible delivery.

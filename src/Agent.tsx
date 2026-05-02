@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 type ChatRole = 'user' | 'agent'
+export type AgentName = 'claude' | 'codex'
 
 type ChatMessage = {
   id: number
@@ -10,19 +11,23 @@ type ChatMessage = {
 }
 
 type Props = {
+  agent: AgentName
   sessionId: string
+  onSelectAgent: (next: AgentName) => void
+  onCodexSessionAssigned: (id: string) => void
 }
 
 type ServerMessage =
   | { type: 'stdout' | 'stderr'; data: string }
-  | { type: 'done'; code: number }
+  | { type: 'done'; code: number; sessionId?: string }
   | { type: 'error'; message: string }
+  | { type: 'session_assigned'; sessionId: string }
 
-const STARTED_KEY = 'agent.startedSessions'
+const CLAUDE_STARTED_KEY = 'agent.claude.startedSessions'
 
 function loadStartedSessions(): Set<string> {
   try {
-    const raw = localStorage.getItem(STARTED_KEY)
+    const raw = localStorage.getItem(CLAUDE_STARTED_KEY)
     if (!raw) return new Set()
     const parsed = JSON.parse(raw)
     return new Set(Array.isArray(parsed) ? parsed.filter((x) => typeof x === 'string') : [])
@@ -35,10 +40,10 @@ function markSessionStarted(id: string) {
   const set = loadStartedSessions()
   if (set.has(id)) return
   set.add(id)
-  localStorage.setItem(STARTED_KEY, JSON.stringify([...set]))
+  localStorage.setItem(CLAUDE_STARTED_KEY, JSON.stringify([...set]))
 }
 
-export default function Agent({ sessionId }: Props) {
+export default function Agent({ agent, sessionId, onSelectAgent, onCodexSessionAssigned }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [draft, setDraft] = useState('')
   const [busy, setBusy] = useState(false)
@@ -46,6 +51,7 @@ export default function Agent({ sessionId }: Props) {
   const wsRef = useRef<WebSocket | null>(null)
   const activeIdRef = useRef<number | null>(null)
   const activeSessionIdRef = useRef<string | null>(null)
+  const activeAgentRef = useRef<AgentName>(agent)
   const threadRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -70,11 +76,14 @@ export default function Agent({ sessionId }: Props) {
         setMessages((prev) =>
           prev.map((m) => (m.id === id ? { ...m, content: m.content + msg.data } : m))
         )
+      } else if (msg.type === 'session_assigned') {
+        onCodexSessionAssigned(msg.sessionId)
+        activeSessionIdRef.current = msg.sessionId
       } else if (msg.type === 'done') {
         setMessages((prev) =>
           prev.map((m) => (m.id === id ? { ...m, streaming: false } : m))
         )
-        if (msg.code === 0 && activeSessionIdRef.current) {
+        if (msg.code === 0 && activeAgentRef.current === 'claude' && activeSessionIdRef.current) {
           markSessionStarted(activeSessionIdRef.current)
         }
         activeIdRef.current = null
@@ -84,7 +93,9 @@ export default function Agent({ sessionId }: Props) {
         if (id != null) {
           setMessages((prev) =>
             prev.map((m) =>
-              m.id === id ? { ...m, content: m.content + `\n[error: ${msg.message}]`, streaming: false } : m
+              m.id === id
+                ? { ...m, content: m.content + `\n[error: ${msg.message}]`, streaming: false }
+                : m
             )
           )
         } else {
@@ -102,7 +113,7 @@ export default function Agent({ sessionId }: Props) {
     return () => {
       ws.close()
     }
-  }, [])
+  }, [onCodexSessionAssigned])
 
   useEffect(() => {
     if (threadRef.current) {
@@ -116,8 +127,18 @@ export default function Agent({ sessionId }: Props) {
     const ws = wsRef.current
     if (!ws || ws.readyState !== WebSocket.OPEN) return
 
-    const mode: 'create' | 'resume' = loadStartedSessions().has(sessionId) ? 'resume' : 'create'
-    activeSessionIdRef.current = sessionId
+    let mode: 'create' | 'resume'
+    let outboundSessionId: string | undefined
+    if (agent === 'claude') {
+      mode = loadStartedSessions().has(sessionId) ? 'resume' : 'create'
+      outboundSessionId = sessionId
+    } else {
+      mode = sessionId ? 'resume' : 'create'
+      outboundSessionId = sessionId || undefined
+    }
+
+    activeAgentRef.current = agent
+    activeSessionIdRef.current = outboundSessionId ?? null
 
     setMessages((prev) => {
       const lastId = prev.length ? prev[prev.length - 1].id : 0
@@ -132,20 +153,45 @@ export default function Agent({ sessionId }: Props) {
     })
     setBusy(true)
     setDraft('')
-    ws.send(JSON.stringify({ type: 'prompt', sessionId, prompt: text, mode }))
+    ws.send(
+      JSON.stringify({
+        type: 'prompt',
+        agent,
+        sessionId: outboundSessionId,
+        prompt: text,
+        mode
+      })
+    )
   }
+
+  const cliLabel = agent === 'claude' ? 'claude -p' : 'codex exec'
+  const sessionLabel = sessionId ? `${sessionId.slice(0, 8)}…` : 'new'
 
   return (
     <article className="panel agent-panel">
       <div className="agent-header">
-        <h3>Agent</h3>
+        <div className="agent-header-left">
+          <h3>Agent</h3>
+          <select
+            className="agent-select"
+            value={agent}
+            onChange={(e) => onSelectAgent(e.target.value as AgentName)}
+            aria-label="Agent type"
+            disabled={busy}
+          >
+            <option value="claude">Claude</option>
+            <option value="codex">Codex</option>
+          </select>
+        </div>
         <span className={`warning-pill ${connected ? 'mock' : ''}`}>
-          {connected ? `claude -p · ${sessionId.slice(0, 8)}…` : 'disconnected'}
+          {connected ? `${cliLabel} · ${sessionLabel}` : 'disconnected'}
         </span>
       </div>
       <div className="agent-thread" ref={threadRef}>
         {messages.length === 0 ? (
-          <p className="placeholder">Ask the agent something — it runs `claude -p` on the host.</p>
+          <p className="placeholder">
+            Ask the {agent} agent something — it runs `{cliLabel}` on the host.
+          </p>
         ) : (
           messages.map((m) => (
             <div key={m.id} className={`bubble ${m.role}`}>
