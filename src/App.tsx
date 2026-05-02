@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react'
+import Terminal from './Terminal'
+import Agent from './Agent'
 
 type EventKind = 'factory' | 'messaging' | 'filesystem' | 'sandbox'
+type Tab = 'demo' | 'terminal' | 'agent'
 
 type DemoEvent = {
   id: number
@@ -35,6 +38,7 @@ export default function App() {
   const [fileBody, setFileBody] = useState<string>('')
   const [fileReads, setFileReads] = useState<number>(0)
   const [messagesSent, setMessagesSent] = useState<number>(0)
+  const [tab, setTab] = useState<Tab>('demo')
 
   const counts = useMemo(() => {
     return {
@@ -111,6 +115,40 @@ export default function App() {
     <div className="page-shell">
       <div className="mesh-bg" aria-hidden="true" />
 
+      <nav className="tabs" role="tablist" aria-label="Sections">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'demo'}
+          className={`tab ${tab === 'demo' ? 'active' : ''}`}
+          onClick={() => setTab('demo')}
+        >
+          Demo
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'terminal'}
+          className={`tab ${tab === 'terminal' ? 'active' : ''}`}
+          onClick={() => setTab('terminal')}
+        >
+          Terminal
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'agent'}
+          className={`tab ${tab === 'agent' ? 'active' : ''}`}
+          onClick={() => setTab('agent')}
+        >
+          Agent
+        </button>
+      </nav>
+
+      {tab === 'terminal' && <Terminal />}
+      {tab === 'agent' && <Agent />}
+      {tab !== 'demo' ? null : (
+      <>
       <header className="hero">
         <p className="eyebrow">Mock Product Demo • Vite + React + TypeScript</p>
         <h1>Build, message, and persist in one isolated runtime.</h1>
@@ -240,6 +278,8 @@ PUT /v1/fs/write
           </div>
         </dl>
       </section>
+      </>
+      )}
     </div>
   )
 }

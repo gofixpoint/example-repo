@@ -323,6 +323,157 @@ code {
   }
 }
 
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.4rem;
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--line), white 10%);
+  border-radius: 14px;
+  width: fit-content;
+}
+
+.tab {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 0.45rem 0.9rem;
+  font-weight: 600;
+  font-family: var(--sans);
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--text);
+  transform: none;
+  filter: none;
+}
+
+.tab.active {
+  background: linear-gradient(125deg, var(--accent), #0ea8d8);
+  color: #012232;
+}
+
+.terminal-panel {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.terminal-header,
+.agent-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.terminal-header h3,
+.agent-header h3 {
+  margin: 0;
+}
+
+.warning-pill {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
+  background: #5a1d1d;
+  color: #ffb4b4;
+  border: 1px solid #aa3333;
+  letter-spacing: 0.04em;
+}
+
+.warning-pill.mock {
+  background: #1b3f5d;
+  color: #9ad6ff;
+  border-color: var(--line);
+}
+
+.terminal-host {
+  background: #031724;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.5rem;
+  height: 480px;
+}
+
+.terminal-host .xterm,
+.terminal-host .xterm-viewport,
+.terminal-host .xterm-screen {
+  height: 100% !important;
+}
+
+.agent-panel {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.agent-thread {
+  display: grid;
+  gap: 0.55rem;
+  max-height: 480px;
+  overflow: auto;
+  padding: 0.5rem;
+  background: color-mix(in srgb, var(--surface-2), black 20%);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.bubble {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  max-width: 85%;
+}
+
+.bubble.user {
+  justify-self: end;
+  background: linear-gradient(125deg, #0e3f5a, #0a5269);
+}
+
+.bubble.agent {
+  justify-self: start;
+}
+
+.bubble-role {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+
+.bubble p {
+  margin: 0;
+  color: #d2eff7;
+}
+
+.agent-composer {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.agent-composer input {
+  flex: 1;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.6rem 0.8rem;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 0.95rem;
+}
+
+.agent-composer input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
 @media (max-width: 960px) {
   .pillars,
   .demo-grid,
