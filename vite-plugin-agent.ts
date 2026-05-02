@@ -5,7 +5,7 @@ import { spawn, type ChildProcess } from 'node:child_process'
 // DEMO ONLY: invokes the host `claude` CLI with caller-supplied prompts over an
 // unauthenticated WebSocket. Anyone reachable on the dev server port can run
 // prompts as the dev-server user.
-const WS_PATH = '/agent'
+const WS_PATH = '/ws/agent'
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export function agentPlugin(): Plugin {

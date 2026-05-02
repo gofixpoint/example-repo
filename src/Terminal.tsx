@@ -25,7 +25,7 @@ export default function Terminal() {
     fit.fit()
 
     const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const ws = new WebSocket(`${wsProto}//${window.location.host}/pty`)
+    const ws = new WebSocket(`${wsProto}//${window.location.host}/ws/bash`)
 
     ws.binaryType = 'arraybuffer'
 

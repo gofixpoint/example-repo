@@ -29,7 +29,7 @@ export default function Agent({ sessionId }: Props) {
 
   useEffect(() => {
     const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const ws = new WebSocket(`${wsProto}//${window.location.host}/agent`)
+    const ws = new WebSocket(`${wsProto}//${window.location.host}/ws/agent`)
     wsRef.current = ws
 
     ws.onopen = () => setConnected(true)

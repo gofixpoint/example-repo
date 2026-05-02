@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Terminal from './Terminal'
 import Agent from './Agent'
 
@@ -42,6 +42,18 @@ function loadSessionId(): string {
   return fresh
 }
 
+const TAB_TO_PATH: Record<Tab, string> = {
+  demo: '/',
+  terminal: '/bash',
+  agent: '/agent'
+}
+
+function tabFromPath(pathname: string): Tab {
+  if (pathname === '/bash') return 'terminal'
+  if (pathname === '/agent') return 'agent'
+  return 'demo'
+}
+
 export default function App() {
   const [sandboxId, setSandboxId] = useState<string>('not-created')
   const [topic] = useState('factory.events.deploy')
@@ -49,8 +61,22 @@ export default function App() {
   const [fileBody, setFileBody] = useState<string>('')
   const [fileReads, setFileReads] = useState<number>(0)
   const [messagesSent, setMessagesSent] = useState<number>(0)
-  const [tab, setTab] = useState<Tab>('demo')
+  const [tab, setTab] = useState<Tab>(() => tabFromPath(window.location.pathname))
   const [sessionId, setSessionId] = useState<string>(() => loadSessionId())
+
+  useEffect(() => {
+    const onPop = () => setTab(tabFromPath(window.location.pathname))
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
+
+  function navigate(next: Tab) {
+    const path = TAB_TO_PATH[next]
+    if (window.location.pathname !== path) {
+      window.history.pushState(null, '', path)
+    }
+    setTab(next)
+  }
 
   function newSession() {
     const fresh = crypto.randomUUID()
@@ -148,7 +174,7 @@ export default function App() {
           role="tab"
           aria-selected={tab === 'demo'}
           className={`tab ${tab === 'demo' ? 'active' : ''}`}
-          onClick={() => setTab('demo')}
+          onClick={() => navigate('demo')}
         >
           Demo
         </button>
@@ -157,7 +183,7 @@ export default function App() {
           role="tab"
           aria-selected={tab === 'terminal'}
           className={`tab ${tab === 'terminal' ? 'active' : ''}`}
-          onClick={() => setTab('terminal')}
+          onClick={() => navigate('terminal')}
         >
           Terminal
         </button>
@@ -166,7 +192,7 @@ export default function App() {
           role="tab"
           aria-selected={tab === 'agent'}
           className={`tab ${tab === 'agent' ? 'active' : ''}`}
-          onClick={() => setTab('agent')}
+          onClick={() => navigate('agent')}
         >
           Agent
         </button>

@@ -5,7 +5,7 @@ import os from 'node:os'
 
 // DEMO ONLY: this exposes an unauthenticated shell on the dev server.
 // Anyone who can reach the port gets a full shell as the dev-server user.
-const WS_PATH = '/pty'
+const WS_PATH = '/ws/bash'
 
 export function ptyPlugin(): Plugin {
   return {
