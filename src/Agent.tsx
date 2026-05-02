@@ -162,12 +162,18 @@ export default function Agent({ sessionId }: Props) {
           send()
         }}
       >
-        <input
-          type="text"
+        <textarea
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder={busy ? 'Streaming…' : 'Ask the agent…'}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && e.shiftKey) {
+              e.preventDefault()
+              send()
+            }
+          }}
+          placeholder={busy ? 'Streaming…' : 'Ask the agent… (shift+enter to send)'}
           aria-label="Message"
+          rows={3}
           disabled={busy || !connected}
         />
         <button type="submit" disabled={busy || !connected || !draft.trim()}>

@@ -490,9 +490,10 @@ code {
 .agent-composer {
   display: flex;
   gap: 0.5rem;
+  align-items: stretch;
 }
 
-.agent-composer input {
+.agent-composer textarea {
   flex: 1;
   background: var(--surface-2);
   border: 1px solid var(--line);
@@ -501,11 +502,18 @@ code {
   color: var(--text);
   font-family: var(--sans);
   font-size: 0.95rem;
+  resize: vertical;
+  min-height: 3.5rem;
+  line-height: 1.4;
 }
 
-.agent-composer input:focus {
+.agent-composer textarea:focus {
   outline: none;
   border-color: var(--accent);
+}
+
+.agent-composer button {
+  align-self: stretch;
 }
 
 @media (max-width: 960px) {
