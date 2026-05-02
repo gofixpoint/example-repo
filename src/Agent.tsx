@@ -18,6 +18,26 @@ type ServerMessage =
   | { type: 'done'; code: number }
   | { type: 'error'; message: string }
 
+const STARTED_KEY = 'agent.startedSessions'
+
+function loadStartedSessions(): Set<string> {
+  try {
+    const raw = localStorage.getItem(STARTED_KEY)
+    if (!raw) return new Set()
+    const parsed = JSON.parse(raw)
+    return new Set(Array.isArray(parsed) ? parsed.filter((x) => typeof x === 'string') : [])
+  } catch {
+    return new Set()
+  }
+}
+
+function markSessionStarted(id: string) {
+  const set = loadStartedSessions()
+  if (set.has(id)) return
+  set.add(id)
+  localStorage.setItem(STARTED_KEY, JSON.stringify([...set]))
+}
+
 export default function Agent({ sessionId }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [draft, setDraft] = useState('')
@@ -25,6 +45,7 @@ export default function Agent({ sessionId }: Props) {
   const [connected, setConnected] = useState(false)
   const wsRef = useRef<WebSocket | null>(null)
   const activeIdRef = useRef<number | null>(null)
+  const activeSessionIdRef = useRef<string | null>(null)
   const threadRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -53,7 +74,11 @@ export default function Agent({ sessionId }: Props) {
         setMessages((prev) =>
           prev.map((m) => (m.id === id ? { ...m, streaming: false } : m))
         )
+        if (msg.code === 0 && activeSessionIdRef.current) {
+          markSessionStarted(activeSessionIdRef.current)
+        }
         activeIdRef.current = null
+        activeSessionIdRef.current = null
         setBusy(false)
       } else if (msg.type === 'error') {
         if (id != null) {
@@ -69,6 +94,7 @@ export default function Agent({ sessionId }: Props) {
           ])
         }
         activeIdRef.current = null
+        activeSessionIdRef.current = null
         setBusy(false)
       }
     }
@@ -90,6 +116,9 @@ export default function Agent({ sessionId }: Props) {
     const ws = wsRef.current
     if (!ws || ws.readyState !== WebSocket.OPEN) return
 
+    const mode: 'create' | 'resume' = loadStartedSessions().has(sessionId) ? 'resume' : 'create'
+    activeSessionIdRef.current = sessionId
+
     setMessages((prev) => {
       const lastId = prev.length ? prev[prev.length - 1].id : 0
       const userId = lastId + 1
@@ -103,7 +132,7 @@ export default function Agent({ sessionId }: Props) {
     })
     setBusy(true)
     setDraft('')
-    ws.send(JSON.stringify({ type: 'prompt', sessionId, prompt: text }))
+    ws.send(JSON.stringify({ type: 'prompt', sessionId, prompt: text, mode }))
   }
 
   return (
