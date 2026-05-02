@@ -253,10 +253,16 @@ export default function Agent({ agent, sessionId, onSelectAgent, onCodexSessionA
               send()
             }
           }}
-          placeholder={busy ? 'Streaming…' : 'Ask the agent… (shift+enter to send)'}
+          placeholder={
+            busy
+              ? 'Streaming…'
+              : connected
+                ? 'Ask the agent… (shift+enter to send)'
+                : 'Reconnecting… (you can still type)'
+          }
           aria-label="Message"
           rows={3}
-          disabled={busy || !connected}
+          disabled={busy}
         />
         <button type="submit" disabled={busy || !connected || !draft.trim()}>
           Send
