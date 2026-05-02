@@ -6,5 +6,5 @@
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true
   },
-  "include": ["vite.config.ts", "vite-plugin-pty.ts", "vite-plugin-agent.ts"]
+  "include": ["vite.config.ts", "vite-plugin-pty.ts", "agent-server.ts"]
 }

@@ -15,22 +15,33 @@ Each tab is a real route:
 - `/bash` — Terminal: connects to a real shell on the host via a WebSocket
   (`/ws/bash`) backed by `vite-plugin-pty.ts` + `node-pty`.
 - `/agent` — Agent: chat UI that sends prompts over a WebSocket (`/ws/agent`)
-  to `vite-plugin-agent.ts`. The plugin defines an `IAgent` interface with two
-  implementations (`ClaudeAgent`, `CodexAgent`); the prompt frame's `agent`
-  field selects which one to spawn. All session state (current id, history)
-  lives in browser localStorage, namespaced per agent. For Codex specifically,
-  the auto-generated thread UUID is parsed from the `thread.started` JSONL
-  event and pushed back to the browser via a `session_assigned` event so the
-  next prompt can resume.
+  to a **sidecar process** (`agent-server.ts`) bound to `127.0.0.1:9877`.
+  Vite proxies `/ws/agent` to the sidecar via `server.proxy` so that Vite
+  dev-server restarts (which happen whenever the agent edits a file Vite
+  imports) do not kill in-flight agent runs. The sidecar defines an `IAgent`
+  interface with two implementations (`ClaudeAgent`, `CodexAgent`); the
+  prompt frame's `agent` field selects which one to spawn. All session state
+  (current id, history) lives in browser localStorage, namespaced per
+  agent. For Codex specifically, the auto-generated thread UUID is parsed
+  from the `thread.started` JSONL event and pushed back to the browser via
+  a `session_assigned` event so the next prompt can resume.
 
-  Codex's settings live under `CODEX_HOME` (default `~/.codex/`); the dev
-  server inherits that env var via `process.env`, so logged-in credentials
+  Each prompt is assigned a `runId` by the sidecar and announced via a
+  `run_started` event. The sidecar buffers all events for a run in memory
+  (5 min TTL after `done`); on WS reconnect the client sends
+  `{type: 'attach', runId}` to replay missed events and resume streaming.
+  This makes a Vite restart mid-prompt invisible to the user.
+
+  Codex's settings live under `CODEX_HOME` (default `~/.codex/`); the
+  sidecar inherits that env var via `process.env`, so logged-in credentials
   work without extra wiring.
 
 ⚠️ Both backend endpoints are intentionally **unauthenticated** and the dev
 server binds to `0.0.0.0` (`server.host: true` in `vite.config.ts`), so anyone
 who can reach the port has full shell access *and* can run prompts as the dev-
-server user. This is a deliberate demo-only configuration — do not deploy as-is.
+server user. The agent sidecar itself binds only to `127.0.0.1:9877`, but
+Vite's proxy exposes it through the public port. This is a deliberate
+demo-only configuration — do not deploy as-is.
 
 ## Tech stack
 
@@ -53,10 +64,13 @@ Default port: `9876`
 - `src/Terminal.tsx` mounts xterm.js and connects to the `/ws/bash` WebSocket.
 - `src/Agent.tsx` connects to `/ws/agent` and streams `claude -p` output.
 - `src/styles.css` contains visual system and responsive behavior.
-- `vite.config.ts` sets server defaults and registers the dev-mode plugins.
+- `vite.config.ts` sets server defaults, registers the dev-mode pty plugin,
+  and proxies `/ws/agent` to the agent sidecar.
 - `vite-plugin-pty.ts` runs the `/ws/bash` → node-pty backend in dev mode.
-- `vite-plugin-agent.ts` runs the `/ws/agent` backend in dev mode (IAgent +
-  ClaudeAgent + CodexAgent).
+- `agent-server.ts` is the standalone sidecar that runs the `/ws/agent`
+  backend (IAgent + ClaudeAgent + CodexAgent) plus per-`runId` buffering
+  and reconnect/attach support. Started via `pnpm dev:agent` (or
+  automatically from `pnpm dev`).
 
 ## Agent guidance
 

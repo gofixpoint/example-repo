@@ -22,8 +22,10 @@ type ServerMessage =
   | { type: 'done'; code: number; sessionId?: string }
   | { type: 'error'; message: string }
   | { type: 'session_assigned'; sessionId: string }
+  | { type: 'run_started'; runId: string }
 
 const CLAUDE_STARTED_KEY = 'agent.claude.startedSessions'
+const RECONNECT_DELAYS_MS = [500, 1000, 2000, 5000]
 
 function loadStartedSessions(): Set<string> {
   try {
@@ -51,67 +53,100 @@ export default function Agent({ agent, sessionId, onSelectAgent, onCodexSessionA
   const wsRef = useRef<WebSocket | null>(null)
   const activeIdRef = useRef<number | null>(null)
   const activeSessionIdRef = useRef<string | null>(null)
+  const activeRunIdRef = useRef<string | null>(null)
   const activeAgentRef = useRef<AgentName>(agent)
   const threadRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
-    const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const ws = new WebSocket(`${wsProto}//${window.location.host}/ws/agent`)
-    wsRef.current = ws
+    let unmounted = false
+    let reconnectAttempt = 0
+    let reconnectTimer: number | null = null
 
-    ws.onopen = () => setConnected(true)
-    ws.onclose = () => setConnected(false)
+    function connect() {
+      const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+      const ws = new WebSocket(`${wsProto}//${window.location.host}/ws/agent`)
+      wsRef.current = ws
 
-    ws.onmessage = (ev) => {
-      let msg: ServerMessage
-      try {
-        msg = JSON.parse(ev.data)
-      } catch {
-        return
+      ws.onopen = () => {
+        reconnectAttempt = 0
+        setConnected(true)
+        if (activeRunIdRef.current) {
+          ws.send(JSON.stringify({ type: 'attach', runId: activeRunIdRef.current }))
+        }
       }
-      const id = activeIdRef.current
 
-      if (msg.type === 'stdout' || msg.type === 'stderr') {
-        if (id == null) return
-        setMessages((prev) =>
-          prev.map((m) => (m.id === id ? { ...m, content: m.content + msg.data } : m))
-        )
-      } else if (msg.type === 'session_assigned') {
-        onCodexSessionAssigned(msg.sessionId)
-        activeSessionIdRef.current = msg.sessionId
-      } else if (msg.type === 'done') {
-        setMessages((prev) =>
-          prev.map((m) => (m.id === id ? { ...m, streaming: false } : m))
-        )
-        if (msg.code === 0 && activeAgentRef.current === 'claude' && activeSessionIdRef.current) {
-          markSessionStarted(activeSessionIdRef.current)
+      ws.onclose = () => {
+        setConnected(false)
+        wsRef.current = null
+        if (unmounted) return
+        const delay = RECONNECT_DELAYS_MS[Math.min(reconnectAttempt, RECONNECT_DELAYS_MS.length - 1)]
+        reconnectAttempt += 1
+        reconnectTimer = window.setTimeout(connect, delay)
+      }
+
+      ws.onmessage = (ev) => {
+        let msg: ServerMessage
+        try {
+          msg = JSON.parse(ev.data)
+        } catch {
+          return
         }
-        activeIdRef.current = null
-        activeSessionIdRef.current = null
-        setBusy(false)
-      } else if (msg.type === 'error') {
-        if (id != null) {
+        const id = activeIdRef.current
+
+        if (msg.type === 'run_started') {
+          activeRunIdRef.current = msg.runId
+        } else if (msg.type === 'stdout' || msg.type === 'stderr') {
+          if (id == null) return
           setMessages((prev) =>
-            prev.map((m) =>
-              m.id === id
-                ? { ...m, content: m.content + `\n[error: ${msg.message}]`, streaming: false }
-                : m
-            )
+            prev.map((m) => (m.id === id ? { ...m, content: m.content + msg.data } : m))
           )
-        } else {
-          setMessages((prev) => [
-            ...prev,
-            { id: prev.length + 1, role: 'agent', content: `[error: ${msg.message}]` }
-          ])
+        } else if (msg.type === 'session_assigned') {
+          onCodexSessionAssigned(msg.sessionId)
+          activeSessionIdRef.current = msg.sessionId
+        } else if (msg.type === 'done') {
+          setMessages((prev) =>
+            prev.map((m) => (m.id === id ? { ...m, streaming: false } : m))
+          )
+          if (msg.code === 0 && activeAgentRef.current === 'claude' && activeSessionIdRef.current) {
+            markSessionStarted(activeSessionIdRef.current)
+          }
+          activeIdRef.current = null
+          activeSessionIdRef.current = null
+          activeRunIdRef.current = null
+          setBusy(false)
+        } else if (msg.type === 'error') {
+          if (id != null) {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === id
+                  ? { ...m, content: m.content + `\n[error: ${msg.message}]`, streaming: false }
+                  : m
+              )
+            )
+          } else {
+            setMessages((prev) => [
+              ...prev,
+              { id: prev.length + 1, role: 'agent', content: `[error: ${msg.message}]` }
+            ])
+          }
+          activeIdRef.current = null
+          activeSessionIdRef.current = null
+          activeRunIdRef.current = null
+          setBusy(false)
         }
-        activeIdRef.current = null
-        activeSessionIdRef.current = null
-        setBusy(false)
       }
     }
 
+    connect()
+
     return () => {
-      ws.close()
+      unmounted = true
+      if (reconnectTimer != null) window.clearTimeout(reconnectTimer)
+      const ws = wsRef.current
+      if (ws) {
+        ws.onclose = null
+        ws.close()
+      }
     }
   }, [onCodexSessionAssigned])
 
@@ -139,6 +174,7 @@ export default function Agent({ agent, sessionId, onSelectAgent, onCodexSessionA
 
     activeAgentRef.current = agent
     activeSessionIdRef.current = outboundSessionId ?? null
+    activeRunIdRef.current = null
 
     setMessages((prev) => {
       const lastId = prev.length ? prev[prev.length - 1].id : 0

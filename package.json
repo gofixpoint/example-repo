@@ -5,7 +5,9 @@
   "packageManager": "pnpm@9.12.2",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently -k -n agent,vite -c magenta,cyan \"pnpm dev:agent\" \"pnpm dev:vite\"",
+    "dev:agent": "tsx agent-server.ts",
+    "dev:vite": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview"
   },
@@ -21,7 +23,9 @@
     "@types/react-dom": "^18.3.1",
     "@types/ws": "^8.18.1",
     "@vitejs/plugin-react": "^4.3.1",
+    "concurrently": "^9.0.0",
     "node-pty": "^1.1.0",
+    "tsx": "^4.19.0",
     "typescript": "^5.6.2",
     "vite": "^5.4.8",
     "ws": "^8.20.0"
