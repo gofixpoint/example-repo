@@ -53,11 +53,15 @@ export function agentPlugin(): Plugin {
             return
           }
 
-          const child = spawn('claude', ['-p', '--session-id', sessionId, prompt], {
-            cwd,
-            env: process.env,
-            stdio: ['ignore', 'pipe', 'pipe']
-          })
+          const child = spawn(
+            'claude',
+            ['-p', '--dangerously-skip-permissions', '--session-id', sessionId, prompt],
+            {
+              cwd,
+              env: process.env,
+              stdio: ['ignore', 'pipe', 'pipe']
+            }
+          )
           active = child
 
           child.stdout?.on('data', (d: Buffer) => sendJSON({ type: 'stdout', data: d.toString() }))
