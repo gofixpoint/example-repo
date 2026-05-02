@@ -31,6 +31,17 @@ function nextSandboxId() {
   return `sbx-${Math.random().toString(36).slice(2, 8)}`
 }
 
+const SESSION_KEY = 'agent.sessionId'
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function loadSessionId(): string {
+  const stored = localStorage.getItem(SESSION_KEY)
+  if (stored && UUID_RE.test(stored)) return stored
+  const fresh = crypto.randomUUID()
+  localStorage.setItem(SESSION_KEY, fresh)
+  return fresh
+}
+
 export default function App() {
   const [sandboxId, setSandboxId] = useState<string>('not-created')
   const [topic] = useState('factory.events.deploy')
@@ -39,6 +50,13 @@ export default function App() {
   const [fileReads, setFileReads] = useState<number>(0)
   const [messagesSent, setMessagesSent] = useState<number>(0)
   const [tab, setTab] = useState<Tab>('demo')
+  const [sessionId, setSessionId] = useState<string>(() => loadSessionId())
+
+  function newSession() {
+    const fresh = crypto.randomUUID()
+    localStorage.setItem(SESSION_KEY, fresh)
+    setSessionId(fresh)
+  }
 
   const counts = useMemo(() => {
     return {
@@ -115,6 +133,15 @@ export default function App() {
     <div className="page-shell">
       <div className="mesh-bg" aria-hidden="true" />
 
+      <div className="session-bar">
+        <button type="button" className="ghost" onClick={newSession}>
+          New Session
+        </button>
+        <code className="session-id" title={sessionId}>
+          {sessionId}
+        </code>
+      </div>
+
       <nav className="tabs" role="tablist" aria-label="Sections">
         <button
           type="button"
@@ -146,7 +173,7 @@ export default function App() {
       </nav>
 
       {tab === 'terminal' && <Terminal />}
-      {tab === 'agent' && <Agent />}
+      {tab === 'agent' && <Agent sessionId={sessionId} />}
       {tab !== 'demo' ? null : (
       <>
       <header className="hero">
