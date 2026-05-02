@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import Terminal from './Terminal'
 import Agent from './Agent'
 
@@ -168,34 +168,16 @@ export default function App() {
         </code>
       </div>
 
-      <nav className="tabs" role="tablist" aria-label="Sections">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === 'demo'}
-          className={`tab ${tab === 'demo' ? 'active' : ''}`}
-          onClick={() => navigate('demo')}
-        >
+      <nav className="tabs" aria-label="Sections">
+        <TabLink target="demo" current={tab} onNavigate={navigate}>
           Demo
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === 'terminal'}
-          className={`tab ${tab === 'terminal' ? 'active' : ''}`}
-          onClick={() => navigate('terminal')}
-        >
+        </TabLink>
+        <TabLink target="terminal" current={tab} onNavigate={navigate}>
           Terminal
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === 'agent'}
-          className={`tab ${tab === 'agent' ? 'active' : ''}`}
-          onClick={() => navigate('agent')}
-        >
+        </TabLink>
+        <TabLink target="agent" current={tab} onNavigate={navigate}>
           Agent
-        </button>
+        </TabLink>
       </nav>
 
       {tab === 'terminal' && <Terminal />}
@@ -334,5 +316,32 @@ PUT /v1/fs/write
       </>
       )}
     </div>
+  )
+}
+
+type TabLinkProps = {
+  target: Tab
+  current: Tab
+  onNavigate: (next: Tab) => void
+  children: ReactNode
+}
+
+function TabLink({ target, current, onNavigate, children }: TabLinkProps) {
+  const active = current === target
+  const href = TAB_TO_PATH[target]
+  return (
+    <a
+      href={href}
+      role="tab"
+      aria-selected={active}
+      className={`tab ${active ? 'active' : ''}`}
+      onClick={(e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
+        e.preventDefault()
+        onNavigate(target)
+      }}
+    >
+      {children}
+    </a>
   )
 }
