@@ -27,4 +27,5 @@ amika sandbox ssh "$SANDBOX_NAME" \
 errcho "Sending prompt to agent..."
 amika sandbox agent-send "$SANDBOX_NAME" "$PROMPT"
 
-errcho "Done."
+errcho "Done. Removing sandbox..."
+amika sandbox rm --force "$SANDBOX_NAME"
