@@ -111,6 +111,20 @@ export default function App() {
     <div className="page-shell">
       <div className="mesh-bg" aria-hidden="true" />
 
+      <section className="env-vars" aria-label="Environment variables">
+        <h3>Environment Variables</h3>
+        <dl className="env-list">
+          <div>
+            <dt>VITE_FRONTEND_URL</dt>
+            <dd>{import.meta.env.VITE_FRONTEND_URL ?? <span className="env-unset">not set</span>}</dd>
+          </div>
+          <div>
+            <dt>VITE_FRONTEND_PORT</dt>
+            <dd>{import.meta.env.VITE_FRONTEND_PORT ?? <span className="env-unset">not set</span>}</dd>
+          </div>
+        </dl>
+      </section>
+
       <header className="hero">
         <p className="eyebrow">Mock Product Demo • Vite + React + TypeScript</p>
         <h1>Build, message, and persist in one isolated runtime.</h1>
@@ -225,20 +239,6 @@ POST /v1/messages/publish
 PUT /v1/fs/write
 { "sandboxId": "${sandboxId}", "path": "${filePath}", "bytes": 78 }`}</code>
         </pre>
-      </section>
-
-      <section className="env-vars" aria-label="Environment variables">
-        <h3>Environment Variables</h3>
-        <dl className="env-list">
-          <div>
-            <dt>VITE_FRONTEND_URL</dt>
-            <dd>{import.meta.env.VITE_FRONTEND_URL ?? <span className="env-unset">not set</span>}</dd>
-          </div>
-          <div>
-            <dt>VITE_FRONTEND_PORT</dt>
-            <dd>{import.meta.env.VITE_FRONTEND_PORT ?? <span className="env-unset">not set</span>}</dd>
-          </div>
-        </dl>
       </section>
     </div>
   )
