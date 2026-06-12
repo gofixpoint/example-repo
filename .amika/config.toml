@@ -16,7 +16,3 @@ MY_VAR = "my-var"
 
 # This secret must be set. Either do it via the UI or from CLI
 MY_SECRET = { secret = "my-secret" }
-
-# Public URL of the app, baked into the React build so the browser
-# calls the proxied Laravel API instead of localhost
-VITE_APP_URL = { service = "app", field = "url" }

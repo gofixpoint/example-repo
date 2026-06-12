@@ -46,9 +46,10 @@ php artisan serve --port 9876
 
 Default port: `9876`
 
-The React app calls the API at `VITE_APP_URL` (baked in at build time). In
-Amika sandboxes this is the public proxied URL of the `app` service (see
-`.amika/config.toml`); when unset, the app falls back to relative `/api` paths.
+The React app calls the API with relative `/api` paths. Laravel serves both
+the built frontend and the API from one origin, so this works unchanged
+behind the Amika sandbox proxy and in local development — do not bake
+absolute URLs into the frontend build.
 
 ## Testing
 

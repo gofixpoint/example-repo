@@ -10,10 +10,10 @@ interface Todo {
 
 type Filter = 'all' | 'active' | 'completed';
 
-// VITE_APP_URL is the public (proxied) URL of the Laravel app; fall back
-// to a relative path for plain local development
-const API_BASE = (import.meta.env.VITE_APP_URL ?? '').replace(/\/$/, '');
-const API = `${API_BASE}/api/todos`;
+// Laravel serves both this app and the API from the same origin, so a
+// relative path works in every environment (sandbox proxy or local dev)
+// and avoids baking a sandbox-specific URL into the build
+const API = '/api/todos';
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
     const response = await fetch(url, {
