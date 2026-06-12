@@ -6,7 +6,8 @@ setup_script = "amika-scripts/setup.sh"
 claude = { type = "api_key" }
 # claude = { type = "oauth" }
 
-[services.frontend]
+# Laravel serves both the built React frontend and the /api/todos API
+[services.app]
 port = 4102
 url_scheme = "https"
 
@@ -16,5 +17,6 @@ MY_VAR = "my-var"
 # This secret must be set. Either do it via the UI or from CLI
 MY_SECRET = { secret = "my-secret" }
 
-VITE_FRONTEND_URL = { service = "frontend", field = "url" }
-VITE_FRONTEND_PORT = { service = "frontend", field = "port" }
+# Public URL of the app, baked into the React build so the browser
+# calls the proxied Laravel API instead of localhost
+VITE_APP_URL = { service = "app", field = "url" }

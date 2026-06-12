@@ -35,6 +35,10 @@ php artisan serve --port 9876
 
 Laravel serves the built assets from `public/build`.
 
+If `VITE_APP_URL` is set at build time, the React app uses it as the API base
+URL (used by Amika sandboxes to point the browser at the proxied app URL);
+otherwise it falls back to relative `/api` paths.
+
 ## Tests
 
 ```bash
