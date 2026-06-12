@@ -1,8 +1,15 @@
 # Dependencies
-node_modules/
+/node_modules
+/vendor
 
 # Build outputs
-dist/
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/.phpunit.cache
+.phpunit.result.cache
 
 # Logs
 *.log
@@ -13,10 +20,20 @@ yarn-error.log*
 
 # Environment files
 .env
+.env.backup
+.env.production
 .env.*
 !.env.example
 
+# Database
+/database/database.sqlite
+
 # Editor / OS files
 .DS_Store
-.idea/
-.vscode/
+Thumbs.db
+/.idea
+/.vscode
+/.zed
+/.cursor/
+/auth.json
+_ide_helper.php

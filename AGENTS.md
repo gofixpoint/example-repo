@@ -2,43 +2,74 @@
 
 ## Purpose
 
-This repository contains a mocked demo website for Amika's products.
+This repository contains a demo TODO list manager app for Amika.
 
 ## Scope
 
-The current implementation is a frontend-only prototype:
+The app is a full-stack Laravel + React application:
 
-- No backend integration
-- No real messaging bus
-- No real filesystem operations
-- All interactions are mocked in the browser UI
+- Laravel backend with a REST API (`/api/todos`)
+- SQLite database (`database/database.sqlite`)
+- React + TypeScript frontend served through Laravel's Vite integration
 
 ## Tech stack
 
-- Vite
+- Laravel (PHP)
 - React
 - TypeScript
+- Vite (via `laravel-vite-plugin`)
+- SQLite
 
 ## Local development
 
 ```bash
+composer install
+cp .env.example .env && php artisan key:generate   # first run only
+touch database/database.sqlite
+php artisan migrate
 pnpm install
-pnpm dev
+```
+
+Then run both servers:
+
+```bash
+php artisan serve --port 9876   # backend at http://localhost:9876
+pnpm dev                        # Vite dev server with HMR
+```
+
+Or build assets once and serve only Laravel:
+
+```bash
+pnpm build
+php artisan serve --port 9876
 ```
 
 Default port: `9876`
 
+## Testing
+
+```bash
+php artisan test     # PHP test suite, includes the Todo API feature tests
+pnpm typecheck       # TypeScript type checking
+```
+
 ## Key files
 
-- `src/App.tsx` contains demo logic and event simulation.
-- `src/styles.css` contains visual system and responsive behavior.
-- `vite.config.ts` sets server defaults.
+- `app/Http/Controllers/TodoController.php` — TODO CRUD API
+- `app/Models/Todo.php` — Todo Eloquent model
+- `routes/api.php` — API routes (`/api/todos`)
+- `resources/js/App.tsx` — React TODO manager UI
+- `resources/js/main.tsx` — React entry point
+- `resources/css/app.css` — visual system
+- `resources/views/welcome.blade.php` — blade shell that mounts React
+- `vite.config.ts` — Vite + Laravel + React plugin config
+- `amika-scripts/setup.sh` — demo environment bootstrap
 
 ## Agent guidance
 
 When modifying this project:
 
 - Keep the experience simple and demo-focused.
-- Prefer mocked data and deterministic UI behavior.
-- Preserve React + TypeScript + Vite structure.
+- Keep the API and UI behavior deterministic.
+- Preserve the Laravel + React + TypeScript + Vite structure.
 - Keep documentation in sync with behavior and defaults.

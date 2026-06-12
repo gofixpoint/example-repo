@@ -1,31 +1,54 @@
-# Amika Demo Site
+# Amika TODO
 
-A simple example website built with Vite, React, and TypeScript to demo:
+A demo TODO list manager built with Laravel, React, and TypeScript.
 
-- Software factory workflows
-- Sandbox messaging
-- Sandbox filesystem behavior
+- Laravel backend exposing a REST API at `/api/todos`
+- SQLite for storage
+- React + TypeScript frontend served through Laravel's Vite integration
 
 ## Run locally
 
+First-time setup:
+
 ```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+touch database/database.sqlite
+php artisan migrate
 pnpm install
-pnpm dev
 ```
 
-The dev server runs on `http://localhost:9876` by default.
+Development (two terminals):
+
+```bash
+php artisan serve --port 9876   # http://localhost:9876
+pnpm dev                        # Vite dev server with HMR
+```
 
 ## Build
 
 ```bash
 pnpm build
-pnpm preview
+php artisan serve --port 9876
 ```
 
-Preview also runs on port `9876`.
+Laravel serves the built assets from `public/build`.
+
+## Tests
+
+```bash
+php artisan test
+pnpm typecheck
+```
 
 ## Project structure
 
-- `src/App.tsx`: main demo UI and mocked interactions
-- `src/styles.css`: visual styling and responsive layout
-- `vite.config.ts`: Vite config (including default ports)
+- `app/Http/Controllers/TodoController.php`: TODO CRUD API
+- `app/Models/Todo.php`: Todo model
+- `routes/api.php`: API routes
+- `resources/js/App.tsx`: React TODO manager UI
+- `resources/js/main.tsx`: React entry point
+- `resources/css/app.css`: styling
+- `resources/views/welcome.blade.php`: blade shell mounting the React app
+- `vite.config.ts`: Vite config (Laravel + React plugins)
