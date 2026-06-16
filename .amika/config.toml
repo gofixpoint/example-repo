@@ -5,6 +5,7 @@ setup_script = "amika-scripts/setup.sh"
 [filesystem]
 repos = [
     "https://github.com/gofixpoint/amika",
+    "https://github.com/gofixpoint/example-repo",
 ]
 
 [agent_credentials]
