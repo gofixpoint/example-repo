@@ -13,3 +13,8 @@ elif command -v pnpm >/dev/null 2>&1; then
 else
   echo "pnpm not found; skipping example-repo dev server bootstrap" > /tmp/amika/example-repo-dev.log
 fi
+
+# Superset
+curl -fsSL https://superset.sh/cli/install.sh | sh
+export PATH="$HOME/superset/bin:$PATH"
+superset start --daemon --org "$SUPERSET_SLUG"

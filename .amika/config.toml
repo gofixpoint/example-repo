@@ -18,6 +18,8 @@ url_scheme = "https"
 
 [env]
 MY_VAR = "my-var"
+SUPERSET_SLUG = "fixpoint"
+SUPERSET_API_KEY = { secret = "superset-api-key" }
 
 # This secret must be set. Either do it via the UI or from CLI
 MY_SECRET = { secret = "my-secret" }
