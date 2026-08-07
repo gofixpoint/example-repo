@@ -108,9 +108,7 @@ export default function App() {
   }
 
   return (
-    <div className="page-shell">
-      <div className="mesh-bg" aria-hidden="true" />
-
+    <>
       <header className="hero">
         <p className="eyebrow">Mock Product Demo • Vite + React + TypeScript</p>
         <h1>Build, message, and persist in one isolated runtime.</h1>
@@ -240,6 +238,6 @@ PUT /v1/fs/write
           </div>
         </dl>
       </section>
-    </div>
+    </>
   )
 }
