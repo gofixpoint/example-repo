@@ -28,6 +28,9 @@ pnpm dev
 
 Default port: `9876`
 
+Inside an Amika sandbox this is different: the dev server is managed by systemd and runs on
+port `4102`. See [devdocs/amika-vm-environment.md](devdocs/amika-vm-environment.md).
+
 ## Key files
 
 - `src/App.tsx` contains demo logic and event simulation.
