@@ -34,7 +34,8 @@ port `4102`. See [devdocs/amika-vm-environment.md](devdocs/amika-vm-environment.
 ## Key files
 
 - `src/App.tsx` contains demo logic and event simulation.
-- `src/BouncingDvd.tsx` is the DVD-screensaver logo overlay that bounces around the viewport.
+- `src/BouncingDvd.tsx` is the DVD-screensaver logo overlay that bounces around the viewport. `App.tsx`
+  renders two of them with different start positions, directions, and colors.
 - `src/styles.css` contains visual system and responsive behavior.
 - `vite.config.ts` sets server defaults.
 

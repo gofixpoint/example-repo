@@ -16,15 +16,31 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max)
 }
 
-export default function BouncingDvd() {
+type BouncingDvdProps = {
+  startX?: number
+  startY?: number
+  /** Initial travel direction per axis: 1 or -1. */
+  directionX?: number
+  directionY?: number
+  /** Index into HUES, so two logos on screen don't start out the same color. */
+  hueOffset?: number
+}
+
+export default function BouncingDvd({
+  startX = 24,
+  startY = 24,
+  directionX = 1,
+  directionY = 1,
+  hueOffset = 0
+}: BouncingDvdProps) {
   const logoRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    let x = 24
-    let y = 24
-    let vx = SPEED
-    let vy = SPEED
-    let hue = 0
+    let x = startX
+    let y = startY
+    let vx = SPEED * directionX
+    let vy = SPEED * directionY
+    let hue = hueOffset % HUES.length
     let last = 0
     let frame = 0
 
@@ -87,7 +103,7 @@ export default function BouncingDvd() {
       cancelAnimationFrame(frame)
       reducedMotion.removeEventListener('change', sync)
     }
-  }, [])
+  }, [startX, startY, directionX, directionY, hueOffset])
 
   return (
     <div className="bouncing-dvd" ref={logoRef} aria-hidden="true">

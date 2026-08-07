@@ -113,6 +113,7 @@ export default function App() {
     <div className="page-shell">
       <div className="mesh-bg" aria-hidden="true" />
       <BouncingDvd />
+      <BouncingDvd startX={280} startY={180} directionX={-1} directionY={-1} hueOffset={3} />
 
       <header className="hero">
         <p className="eyebrow">Mock Product Demo • Vite + React + TypeScript</p>
