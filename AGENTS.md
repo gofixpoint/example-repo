@@ -31,9 +31,21 @@ Default port: `9876`
 Inside an Amika sandbox this is different: the dev server is managed by systemd and runs on
 port `4102`. See [devdocs/amika-vm-environment.md](devdocs/amika-vm-environment.md).
 
+## Pages
+
+- `/` — the interactive mock product demo.
+- `/amika` — an explainer page describing what Amika is.
+
+Routing is a dependency-free `history.pushState` switch in `src/router.tsx`, resolved in
+`src/main.tsx`. Vite's SPA fallback serves `index.html` for these paths in both dev and preview;
+any other static host needs the same fallback configured.
+
 ## Key files
 
 - `src/App.tsx` contains demo logic and event simulation.
+- `src/AmikaPage.tsx` is the `/amika` explainer page.
+- `src/router.tsx` is the minimal path-based router and `Link` component.
+- `src/icons.tsx` holds the inline SVG icons used by the explainer page.
 - `src/styles.css` contains visual system and responsive behavior.
 - `vite.config.ts` sets server defaults.
 

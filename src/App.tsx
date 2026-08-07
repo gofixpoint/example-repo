@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from './router'
 
 type EventKind = 'factory' | 'messaging' | 'filesystem' | 'sandbox'
 
@@ -123,6 +124,9 @@ export default function App() {
           <button type="button" className="ghost">
             View API
           </button>
+          <Link className="button-link ghost" to="/amika">
+            What is Amika?
+          </Link>
         </div>
       </header>
 
