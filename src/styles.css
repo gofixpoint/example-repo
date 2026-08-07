@@ -312,6 +312,21 @@ code {
   font-size: 0.8rem;
 }
 
+.bouncing-dvd {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 5;
+  pointer-events: none;
+  color: var(--accent);
+  filter: drop-shadow(0 0 12px currentColor);
+  will-change: transform;
+}
+
+.bouncing-dvd text {
+  font-family: var(--sans);
+}
+
 @keyframes slide-in {
   from {
     transform: translateY(12px);
