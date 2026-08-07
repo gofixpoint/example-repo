@@ -1,6 +1,6 @@
 :root {
-  --bg: #051d2b;
-  --bg-2: #08344a;
+  --bg: #2b0509;
+  --bg-2: #4a080f;
   --surface: #0d2736cc;
   --surface-2: #123649;
   --line: #2f6c87;
@@ -20,7 +20,7 @@ body {
   margin: 0;
   font-family: var(--sans);
   color: var(--text);
-  background: radial-gradient(circle at 85% 10%, #106f72 0%, var(--bg) 45%, #02111b 100%);
+  background: radial-gradient(circle at 85% 10%, #a01523 0%, var(--bg) 45%, #150104 100%);
 }
 
 .page-shell {
