@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import DvdLogo from './DvdLogo'
 
 type EventKind = 'factory' | 'messaging' | 'filesystem' | 'sandbox'
 
@@ -110,6 +111,7 @@ export default function App() {
   return (
     <div className="page-shell">
       <div className="mesh-bg" aria-hidden="true" />
+      <DvdLogo />
 
       <header className="hero">
         <p className="eyebrow">Mock Product Demo • Vite + React + TypeScript</p>

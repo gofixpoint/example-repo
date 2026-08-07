@@ -59,6 +59,26 @@ body {
   animation: slide-in 500ms ease-out;
 }
 
+.dvd-logo {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 140px;
+  height: 73px;
+  z-index: 5;
+  color: var(--accent); /* also the resting colour when motion is reduced */
+  pointer-events: none;
+  will-change: transform;
+  filter: drop-shadow(0 0 12px currentColor);
+  transition: color 220ms ease;
+}
+
+.dvd-logo svg {
+  width: 100%;
+  height: 100%;
+  font-family: var(--sans);
+}
+
 .eyebrow {
   color: var(--accent);
   margin: 0 0 0.5rem;
