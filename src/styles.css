@@ -47,7 +47,10 @@ body {
 .pillars article,
 .architecture,
 .api,
-.env-vars {
+.env-vars,
+.explainer,
+.use-cases article,
+.capabilities {
   background: var(--surface);
   border: 1px solid color-mix(in srgb, var(--line), white 10%);
   border-radius: 14px;
@@ -100,10 +103,29 @@ button:hover {
   filter: saturate(1.1);
 }
 
-button.ghost {
+button.ghost,
+.button-link.ghost {
   background: transparent;
   color: var(--text);
   border: 1px solid var(--line);
+}
+
+/* Anchors that need to read as buttons (in-app links, outbound links). */
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  background: linear-gradient(125deg, var(--accent), #0ea8d8);
+  color: #012232;
+  border-radius: 10px;
+  padding: 0.6rem 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 140ms ease, filter 140ms ease;
+}
+
+.button-link:hover {
+  transform: translateY(-1px);
+  filter: saturate(1.1);
 }
 
 .pillars {
@@ -298,6 +320,156 @@ button.ghost {
   font-weight: 700;
 }
 
+/* ---- /amika explainer page ---- */
+
+.explainer {
+  padding: clamp(1rem, 2vw, 1.75rem);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1.25rem;
+  animation: slide-in 600ms ease-out;
+}
+
+.explainer-icon {
+  color: var(--accent);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.8rem;
+  align-self: start;
+  line-height: 0;
+}
+
+.explainer-copy p {
+  margin: 0 0 1rem;
+  max-width: 78ch;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.explainer-copy p:last-child {
+  margin-bottom: 0;
+}
+
+.explainer-copy strong {
+  color: var(--text);
+}
+
+.use-cases {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.use-cases article {
+  padding: 1rem;
+  animation: slide-in 700ms ease-out;
+}
+
+.use-cases h2 {
+  margin: 0.15rem 0 0.5rem;
+  font-size: 1.25rem;
+}
+
+.use-cases p {
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.55;
+}
+
+.use-cases .use-case-label {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-2);
+  margin: 0;
+}
+
+.icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.55rem;
+  margin-bottom: 0.7rem;
+  line-height: 0;
+}
+
+.icon-badge.small {
+  margin-bottom: 0;
+  padding: 0.4rem;
+  color: var(--accent-2);
+}
+
+.capabilities {
+  padding: 1rem;
+}
+
+.capability-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.capability-grid article {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.8rem;
+}
+
+.capability-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.45rem;
+}
+
+.capability-head h4 {
+  margin: 0;
+  font-size: 0.98rem;
+}
+
+.capability-grid p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.flow-note {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.85rem 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.flow-note svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.page-footnote {
+  color: var(--muted);
+  font-size: 0.85rem;
+  padding: 0 0.25rem 0.5rem;
+}
+
+.page-footnote p {
+  margin: 0;
+}
+
+.page-footnote a,
+.explainer-copy a {
+  color: var(--accent);
+}
+
 pre {
   margin: 0;
   padding: 1rem;
@@ -326,7 +498,16 @@ code {
 @media (max-width: 960px) {
   .pillars,
   .demo-grid,
-  .flow {
+  .flow,
+  .use-cases {
+    grid-template-columns: 1fr;
+  }
+
+  .capability-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .explainer {
     grid-template-columns: 1fr;
   }
 
@@ -340,7 +521,8 @@ code {
 }
 
 @media (max-width: 560px) {
-  .stats-row {
+  .stats-row,
+  .capability-grid {
     grid-template-columns: 1fr;
   }
 }

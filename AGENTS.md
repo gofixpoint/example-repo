@@ -33,9 +33,23 @@ port `4102`. See [devdocs/amika-vm-environment.md](devdocs/amika-vm-environment.
 
 ## Key files
 
-- `src/App.tsx` contains demo logic and event simulation.
+- `src/main.tsx` resolves the current path to a page.
+- `src/App.tsx` contains demo logic and event simulation (route `/`).
+- `src/AmikaPage.tsx` is the "what is Amika" explainer (route `/amika`).
+- `src/router.tsx` is a minimal History API router (`usePath`, `Link`) — no router dependency.
+- `src/icons.tsx` holds inline SVG icons drawn with `currentColor`.
 - `src/styles.css` contains visual system and responsive behavior.
 - `vite.config.ts` sets server defaults.
+
+## Routes
+
+| Path | Page |
+| --- | --- |
+| `/` | Mocked product demo |
+| `/amika` | Explains what Amika is |
+
+Routing is client-side. `vite dev` and `vite preview` both fall back to `index.html` for unknown
+paths, so deep links work as-is; any other static host needs the same SPA fallback configured.
 
 ## Agent guidance
 
