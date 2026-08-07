@@ -35,6 +35,7 @@ port `4102`. See [devdocs/amika-vm-environment.md](devdocs/amika-vm-environment.
 
 - `src/App.tsx` contains demo logic and event simulation.
 - `src/DvdLogo.tsx` is the decorative DVD screensaver logo that bounces around the viewport.
+  `App.tsx` renders two of them, with props setting each one's start, direction, speed, and colour.
 - `src/styles.css` contains visual system and responsive behavior.
 - `vite.config.ts` sets server defaults.
 

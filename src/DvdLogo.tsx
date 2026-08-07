@@ -6,24 +6,45 @@ const SPEED = 0.14 // px per ms, applied to both axes for a 45° drift
 
 const COLORS = ['#1dd6a5', '#fd9d4b', '#9ad6ff', '#f7b4ff', '#b8ff8f', '#ffc889']
 
-export default function DvdLogo() {
+type DvdLogoProps = {
+  /** Start position as a fraction (0–1) of the area the logo can occupy. */
+  startX?: number
+  startY?: number
+  /** Initial travel direction on each axis. */
+  dirX?: 1 | -1
+  dirY?: 1 | -1
+  /** Where in COLORS this logo begins, so two logos aren't the same colour. */
+  colorOffset?: number
+  /** Travel speed in px per ms, equal on both axes for a 45° drift. */
+  speed?: number
+}
+
+export default function DvdLogo({
+  startX = 0.5,
+  startY = 0.5,
+  dirX = 1,
+  dirY = 1,
+  colorOffset = 0,
+  speed = SPEED
+}: DvdLogoProps = {}) {
   const logoRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const node = logoRef.current
     if (!node) return
 
-    // Deterministic start: dead centre, drifting down-right.
-    let x = Math.max(0, (window.innerWidth - LOGO_WIDTH) / 2)
-    let y = Math.max(0, (window.innerHeight - LOGO_HEIGHT) / 2)
+    // Deterministic start, positioned as a fraction of the free area.
+    let x = Math.max(0, window.innerWidth - LOGO_WIDTH) * startX
+    let y = Math.max(0, window.innerHeight - LOGO_HEIGHT) * startY
+    let colorIndex = colorOffset % COLORS.length
     node.style.transform = `translate3d(${x}px, ${y}px, 0)`
+    node.style.color = COLORS[colorIndex]
 
-    // Reduced motion: render it parked at that centre spot, never animate.
+    // Reduced motion: render it parked at that spot, never animate.
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
-    let vx = SPEED
-    let vy = SPEED
-    let colorIndex = 0
+    let vx = speed * dirX
+    let vy = speed * dirY
     let last = 0
     let frame = 0
 
@@ -43,20 +64,20 @@ export default function DvdLogo() {
       let bounced = false
       if (x <= 0) {
         x = 0
-        vx = SPEED
+        vx = speed
         bounced = true
       } else if (x >= maxX) {
         x = maxX
-        vx = -SPEED
+        vx = -speed
         bounced = true
       }
       if (y <= 0) {
         y = 0
-        vy = SPEED
+        vy = speed
         bounced = true
       } else if (y >= maxY) {
         y = maxY
-        vy = -SPEED
+        vy = -speed
         bounced = true
       }
 
@@ -69,11 +90,10 @@ export default function DvdLogo() {
       frame = requestAnimationFrame(step)
     }
 
-    node.style.color = COLORS[colorIndex]
     frame = requestAnimationFrame(step)
 
     return () => cancelAnimationFrame(frame)
-  }, [])
+  }, [startX, startY, dirX, dirY, colorOffset, speed])
 
   return (
     <div ref={logoRef} className="dvd-logo" aria-hidden="true">

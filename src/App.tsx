@@ -111,7 +111,10 @@ export default function App() {
   return (
     <div className="page-shell">
       <div className="mesh-bg" aria-hidden="true" />
+      {/* Two logos, started on opposite diagonals at slightly different speeds
+          so their paths drift apart instead of tracking each other. */}
       <DvdLogo />
+      <DvdLogo startX={0.85} startY={0.15} dirX={-1} dirY={1} colorOffset={3} speed={0.11} />
 
       <header className="hero">
         <p className="eyebrow">Mock Product Demo • Vite + React + TypeScript</p>
