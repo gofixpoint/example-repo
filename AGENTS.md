@@ -31,6 +31,7 @@ Default port: `9876`
 ## Key files
 
 - `src/App.tsx` contains demo logic and event simulation.
+- `src/DvdBouncer.tsx` contains the screensaver-style DVD logo that bounces around the viewport.
 - `src/styles.css` contains visual system and responsive behavior.
 - `vite.config.ts` sets server defaults.
 

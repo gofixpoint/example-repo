@@ -312,6 +312,52 @@ code {
   font-size: 0.8rem;
 }
 
+.dvd-bouncer {
+  --dvd-hue: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: clamp(88px, 11vw, 132px);
+  pointer-events: none;
+  z-index: 5;
+  will-change: transform;
+  filter: drop-shadow(0 0 14px hsl(var(--dvd-hue) 90% 60% / 0.45));
+}
+
+.dvd-bouncer svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.dvd-disc,
+.dvd-bar {
+  fill: hsl(var(--dvd-hue) 85% 62%);
+}
+
+.dvd-word,
+.dvd-video {
+  fill: #02131d;
+  font-family: var(--sans);
+  font-weight: 700;
+}
+
+.dvd-word {
+  font-size: 26px;
+  letter-spacing: 1px;
+}
+
+.dvd-video {
+  font-size: 11px;
+  letter-spacing: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dvd-bouncer {
+    display: none;
+  }
+}
+
 @keyframes slide-in {
   from {
     transform: translateY(12px);

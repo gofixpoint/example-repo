@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react'
 
+import DvdBouncer from './DvdBouncer'
+
 type EventKind = 'factory' | 'messaging' | 'filesystem' | 'sandbox'
 
 type DemoEvent = {
@@ -110,6 +112,7 @@ export default function App() {
   return (
     <div className="page-shell">
       <div className="mesh-bg" aria-hidden="true" />
+      <DvdBouncer />
 
       <header className="hero">
         <p className="eyebrow">Mock Product Demo • Vite + React + TypeScript</p>
