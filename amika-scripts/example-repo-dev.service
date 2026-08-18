@@ -23,7 +23,9 @@ Environment=HOME=/home/amika
 Environment=PNPM_HOME=/home/amika/.local/share/pnpm
 Environment=PATH=/home/amika/.local/share/pnpm:/usr/local/bin:/usr/bin:/bin
 
-ExecStart=/usr/bin/pnpm dev --host 0.0.0.0 --port ${DEMO_SITE_PORT}
+# Bare command name, resolved against the PATH above: pnpm lives in
+# /usr/local/bin here but moves to PNPM_HOME on a self-managed install.
+ExecStart=pnpm dev --host 0.0.0.0 --port ${DEMO_SITE_PORT}
 
 Restart=always
 RestartSec=2
