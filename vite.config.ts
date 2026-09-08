@@ -5,7 +5,8 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 9876,
-    allowedHosts: ['.style.dev', '.vercel.run']
+    // Amika exposes sandbox services through per-session e2b.app subdomains.
+    allowedHosts: ['.style.dev', '.vercel.run', '.e2b.app']
   },
   preview: {
     port: 9876
