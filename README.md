@@ -13,7 +13,7 @@ pnpm install
 pnpm dev
 ```
 
-The dev server runs on `http://localhost:9876` by default.
+The dev server runs on `http://localhost:9876` by default. Amika sandbox URLs on `*.e2b.app` are also allowed by the Vite host check.
 
 ## Build
 
