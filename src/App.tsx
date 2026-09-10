@@ -52,7 +52,8 @@ export default function App() {
 
   function runFactoryTask() {
     if (sandboxId === 'not-created') {
-      appendEvent('factory', 'Skipped task run: create sandbox first')
+      // appendEvent('factory', 'Skipped task run: create sandbox first')
+      appendEvent('factory', 'Fail on purpose')
       return
     }
     appendEvent('factory', `Executed software factory workflow in ${sandboxId}`)
