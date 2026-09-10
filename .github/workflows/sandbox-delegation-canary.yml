@@ -2,6 +2,9 @@ name: Sandbox delegation canary
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - dylan/amika-gh-ci-worker
 
 jobs:
   success:
