@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - dylan/amika-gh-ci-worker
+      - dylan/amika-gh-ci-demo
 
 permissions:
   contents: read
