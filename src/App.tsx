@@ -1,13 +1,6 @@
 import { useMemo, useState } from 'react'
 
-type EventKind = 'factory' | 'messaging' | 'filesystem' | 'sandbox'
-
-type DemoEvent = {
-  id: number
-  ts: string
-  kind: EventKind
-  detail: string
-}
+import { countEvents, type DemoEvent, type EventKind } from './events'
 
 const filePath = '/workspaces/release-2026/config/deploy.json'
 const buildMessage = JSON.stringify(
@@ -36,13 +29,7 @@ export default function App() {
   const [fileReads, setFileReads] = useState<number>(0)
   const [messagesSent, setMessagesSent] = useState<number>(0)
 
-  const counts = useMemo(() => {
-    return {
-      factory: events.filter((e) => e.kind === 'factory').length,
-      messaging: events.filter((e) => e.kind === 'messaging').length,
-      filesystem: events.filter((e) => e.kind === 'filesystem').length
-    }
-  }, [events])
+  const counts = useMemo(() => countEvents(events), [events])
 
   function appendEvent(kind: EventKind, detail: string) {
     setEvents((prev) => [
