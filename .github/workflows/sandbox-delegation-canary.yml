@@ -1,0 +1,32 @@
+name: Sandbox delegation canary
+
+on:
+  workflow_dispatch:
+
+jobs:
+  success:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Delegate command to sandbox
+        id: sandbox
+        uses: gofixpoint/amika/.github/actions/run-in-sandbox@dylan/sandbox-delegation-action-20260910
+        with:
+          amika-url: https://3011-is8w0bep9juvu05pbk7py.e2b.app
+          sandbox: delegation-canary-20260910
+          reuse-branch-sandbox: "false"
+          timeout-minutes: "5"
+          command: |
+            set -eu
+            echo "sandbox delegation works"
+            git rev-parse HEAD
+            test -f package.json
+        env:
+          AMIKA_TOKEN: sk_mock_dev_key_for_testing
+
+      - name: Show delegated result
+        run: |
+          echo "run-id=${{ steps.sandbox.outputs.run-id }}"
+          echo "sandbox-id=${{ steps.sandbox.outputs.sandbox-id }}"
+          echo "conclusion=${{ steps.sandbox.outputs.conclusion }}"
+          echo "exit-code=${{ steps.sandbox.outputs.exit-code }}"
