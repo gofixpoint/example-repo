@@ -6,6 +6,9 @@ on:
     branches:
       - dylan/amika-gh-ci-worker
 
+permissions:
+  contents: read
+
 jobs:
   success:
     runs-on: ubuntu-latest
@@ -15,21 +18,26 @@ jobs:
         id: sandbox
         uses: gofixpoint/amika/.github/actions/run-in-sandbox@dylan/sandbox-delegation-action-20260910
         with:
-          amika-url: https://3011-is8w0bep9juvu05pbk7py.e2b.app
-          sandbox: delegation-canary-20260910
-          reuse-branch-sandbox: "false"
+          amika-url: ${{ vars.AMIKA_URL }}
+          reuse-branch-sandbox: "true"
+          fallback-sandbox-name: ci.example-repo.${{ github.run_id }}.${{ github.run_attempt }}
+          working-directory: "."
           timeout-minutes: "5"
+          job-key: unit-tests
           command: |
-            set -eu
-            echo "sandbox delegation works"
-            git rev-parse HEAD
-            test -f package.json
+            set -euo pipefail
+            echo "sandbox=${AMIKA_SANDBOX_NAME:-unknown}"
+            pnpm install --frozen-lockfile
+            pnpm test
         env:
-          AMIKA_TOKEN: sk_mock_dev_key_for_testing
+          AMIKA_TOKEN: ${{ secrets.AMIKA_TOKEN }}
 
       - name: Show delegated result
+        if: always()
         run: |
           echo "run-id=${{ steps.sandbox.outputs.run-id }}"
           echo "sandbox-id=${{ steps.sandbox.outputs.sandbox-id }}"
+          echo "sandbox-name=${{ steps.sandbox.outputs.sandbox-name }}"
+          echo "sandbox-url=${{ steps.sandbox.outputs.sandbox-url }}"
           echo "conclusion=${{ steps.sandbox.outputs.conclusion }}"
           echo "exit-code=${{ steps.sandbox.outputs.exit-code }}"
