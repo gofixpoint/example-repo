@@ -9,8 +9,8 @@ repos = [
 ]
 
 [agent_credentials]
-claude = { type = "api_key" }
-# claude = { type = "oauth" }
+# claude = { type = "api_key" }
+claude = { type = "oauth" }
 
 [services.frontend]
 port = 4102
