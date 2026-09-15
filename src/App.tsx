@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import BouncingDvd from './BouncingDvd'
 
 type EventKind = 'factory' | 'messaging' | 'filesystem' | 'sandbox'
 
@@ -110,6 +111,8 @@ export default function App() {
   return (
     <div className="page-shell">
       <div className="mesh-bg" aria-hidden="true" />
+      <BouncingDvd />
+      <BouncingDvd startColor={3} directionX={-1} directionY={1} />
 
       <header className="hero">
         <p className="eyebrow">Mock Product Demo • Vite + React + TypeScript</p>
