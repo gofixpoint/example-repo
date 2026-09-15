@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import BouncingDvd from './BouncingDvd'
 
 type EventKind = 'factory' | 'messaging' | 'filesystem' | 'sandbox'
 
@@ -110,10 +111,12 @@ export default function App() {
   return (
     <div className="page-shell">
       <div className="mesh-bg" aria-hidden="true" />
+      <BouncingDvd />
+      <BouncingDvd startColor={3} directionX={-1} directionY={1} />
 
       <header className="hero">
         <p className="eyebrow">Mock Product Demo • Vite + React + TypeScript</p>
-        <h1>Build, message, and persist in one isolated runtime.</h1>
+        <h1>Hello World</h1>
         <p className="hero-copy">
           This demo simulates how Amika software factory workflows coordinate sandbox messaging and sandbox filesystem
           operations for reproducible delivery.
