@@ -176,7 +176,7 @@ export default function App() {
           <h3>Sandbox Event Stream</h3>
           <ul>
             {events.length === 0 ? (
-              <li className="placeholder">No events yet. Start with Create Sandbox.</li>
+              <li className="placeholder">No events yet. Start with the bound GitHub runner.</li>
             ) : (
               events.map((event) => (
                 <li key={event.id}>

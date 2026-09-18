@@ -11,7 +11,7 @@ describe('App', () => {
   it('shows sandbox and factory events after creating a sandbox', () => {
     render(<App />)
 
-    expect(screen.getByText('No events yet. Start with Create Sandbox.')).toBeTruthy()
+    expect(screen.getByText('No events yet. Start with the bound GitHub runner.')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Create Sandbox' }))
 
     expect(screen.getByText(/^Created isolated sandbox sbx-/)).toBeTruthy()
