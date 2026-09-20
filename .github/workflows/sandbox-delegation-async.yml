@@ -1,0 +1,37 @@
+name: Asynchronous sandbox delegation
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Dispatch command to Amika
+        id: sandbox
+        uses: gofixpoint/amika/.github/actions/run-in-sandbox@dylan/sandbox-delegation-action-20260910
+        with:
+          amika-url: ${{ vars.AMIKA_URL }}
+          reuse-branch-sandbox: "true"
+          fallback-sandbox-name: ci.example-repo.${{ github.run_id }}.${{ github.run_attempt }}
+          working-directory: "."
+          timeout-minutes: "10"
+          job-key: async-unit-tests
+          wait-for-completion: "false"
+          report-result: pr-comment
+          command: |
+            set -euo pipefail
+            echo "sandbox=${AMIKA_SANDBOX_NAME:-unknown}"
+            pnpm install --frozen-lockfile
+            pnpm test
+        env:
+          AMIKA_TOKEN: ${{ secrets.AMIKA_TOKEN }}
+
+      - name: Show accepted run
+        run: |
+          echo "run-id=${{ steps.sandbox.outputs.run-id }}"
+          echo "run-url=${{ steps.sandbox.outputs.run-url }}"
