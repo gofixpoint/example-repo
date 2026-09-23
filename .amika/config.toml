@@ -11,6 +11,7 @@ repos = [
 [agent_credentials]
 claude = { type = "api_key" }
 # claude = { type = "oauth" }
+codex = { type = "api_key", name = "openai-fixpoint-api-key" }
 
 [services.frontend]
 port = 4102
