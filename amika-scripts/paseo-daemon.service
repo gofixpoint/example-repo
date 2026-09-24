@@ -1,0 +1,15 @@
+[Unit]
+Description=Paseo daemon
+Documentation=https://paseo.sh/docs/connectivity
+
+[Service]
+Type=simple
+WorkingDirectory=%h
+Environment="PATH=%h/.local/bin:%h/.local/share/pnpm:%h/.npm-global/bin:%h/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/opt/Paseo/resources/bin/paseo daemon run --home %h/.paseo
+Restart=always
+RestartSec=5s
+TimeoutStopSec=30s
+
+[Install]
+WantedBy=default.target

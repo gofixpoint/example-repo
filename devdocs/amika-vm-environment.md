@@ -44,6 +44,27 @@ starts on boot *before* `setup.sh` reruns, so a `/run` path would fail on every 
 Only `VITE_`-prefixed vars are copied. Those end up in the client bundle anyway, so no
 secrets are written to disk.
 
+## Paseo snapshot
+
+`amika-scripts/snapshot-init.sh` follows the [Paseo guide](https://docs.amika.dev/guides/paseo):
+it installs a pinned Paseo `.deb`, enables a systemd **user** service for the
+`amika` user, and enables lingering so the service starts without a login.
+The script belongs in a fresh base rig created with `--no-setup`; run it before
+capturing the snapshot. It enables but does not start the Paseo daemon, so the
+snapshot contains no shared `~/.paseo/server-id`.
+
+The current snapshot is `example-repo-paseo-0.9.2-20260924`, configured as the
+default in `.amika/config.toml`. When rebuilding it, update that name only
+after the new snapshot becomes active. A repository default selected in the
+Amika web UI takes precedence over the version-controlled default.
+
+On rigs booted from that snapshot, the user service starts the daemon on
+`127.0.0.1:6767`. Connect through Amika SSH using
+`amika rig code <rig-name> --editor paseo`; no public service port is needed.
+`setup.sh` also explicitly starts the enabled user service, because a rig fork
+can inherit a user manager that reached `default.target` before it loaded the
+snapshot's new service.
+
 ## Why not just `nohup ... &`
 
 The original `setup.sh` backgrounded the server with `nohup pnpm dev &`. `nohup` only

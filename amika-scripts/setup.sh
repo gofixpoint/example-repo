@@ -73,4 +73,12 @@ else
   start_detached
 fi
 
+# A rig forked from the Paseo snapshot has an enabled user service. Explicitly
+# start it during repo setup: the fork can inherit an already-running user
+# manager whose default.target was reached before the new service was loaded.
+# Base rigs use --no-setup, so Paseo never starts before snapshot capture.
+if [ -f /home/amika/.config/systemd/user/paseo-daemon.service ]; then
+  XDG_RUNTIME_DIR="/run/user/$(id -u)" systemctl --user start paseo-daemon.service || exit 1
+fi
+
 echo "$DEMO_SITE_PORT" > /run/amika/example-repo-dev.port
