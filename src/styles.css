@@ -344,3 +344,23 @@ code {
     grid-template-columns: 1fr;
   }
 }
+
+.dvd-stage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.dvd-logo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 120px;
+  height: 56px;
+  opacity: 0.85;
+  filter: drop-shadow(0 0 12px currentColor);
+  transition: color 200ms ease-out;
+  will-change: transform;
+}
