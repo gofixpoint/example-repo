@@ -44,6 +44,33 @@ starts on boot *before* `setup.sh` reruns, so a `/run` path would fail on every 
 Only `VITE_`-prefixed vars are copied. Those end up in the client bundle anyway, so no
 secrets are written to disk.
 
+## Previews on a BYOC host
+
+On e2b each service gets a domain of its own (`4102-<sandbox>.e2b.app`), so the app is
+served at `/`. On a BYOC host every service goes through one amika-hostd address instead,
+and the app lives under its service link:
+
+```text
+https://<tunnel>/v0beta1/rigs/<rig>/service-links/frontend/<token>/
+```
+
+Vite writes root-absolute URLs (`/@vite/client`, `/src/main.tsx`). Left at `base: '/'`,
+the browser asks hostd for `/@vite/client`, which names no rig, service, or token, and
+hostd answers `401`, leaving a blank page.
+
+So `vite.config.ts` sets `base` to the path of `VITE_FRONTEND_URL`, the service link
+Amika injects. Every URL Vite writes then stays under the link. hostd strips the link's
+prefix before forwarding, so the `amika-restore-base` plugin puts it back for Vite to
+match. Where `VITE_FRONTEND_URL` has no path (e2b) or is unset (local `pnpm dev`), the
+base is `/` and the plugin does nothing.
+
+Limits on BYOC:
+
+- The link's token expires 24 hours after the rig is created, and the base carries it,
+  so the preview stops loading after that until the server restarts with a fresh link.
+- Hot reload does not connect: hostd does not forward Vite's websocket. Reload the page
+  after an edit.
+
 ## Why not just `nohup ... &`
 
 The original `setup.sh` backgrounded the server with `nohup pnpm dev &`. `nohup` only
