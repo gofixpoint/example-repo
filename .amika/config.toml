@@ -1,6 +1,7 @@
 [lifecycle]
 
 setup_script = "amika-scripts/setup.sh"
+start_script = "amika-scripts/start.sh"
 
 [filesystem]
 repos = [
