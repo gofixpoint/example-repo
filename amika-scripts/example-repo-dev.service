@@ -12,11 +12,11 @@ User=amika
 Group=amika
 WorkingDirectory=/home/amika/workspace/example-repo
 
-# Written by amika-scripts/setup.sh. Carries DEMO_SITE_PORT plus the VITE_*
+# Written by amika-scripts/start.sh. Carries DEMO_SITE_PORT plus the VITE_*
 # vars that .amika/config.toml injects into the sandbox environment -- systemd
 # units do not inherit the sandbox env, so they have to be captured to a file.
 # Lives in /etc rather than /run: /run is tmpfs and is wiped on reboot, but this
-# unit is enabled at multi-user.target and starts before setup.sh reruns.
+# unit is enabled at multi-user.target and starts before start.sh reruns.
 EnvironmentFile=/etc/amika/example-repo-dev.env
 
 Environment=HOME=/home/amika

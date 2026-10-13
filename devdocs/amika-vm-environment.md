@@ -14,10 +14,11 @@ every call.
 
 ## The dev server
 
-Inside a sandbox the dev server is **not** started by hand. `amika-scripts/setup.sh` (wired
-up via `[lifecycle] setup_script` in `.amika/config.toml`) installs and enables a systemd
-unit, `example-repo-dev.service`, which runs Vite on port **4102** — the port registered as
-the `frontend` service in `.amika/config.toml`.
+Inside a sandbox the dev server is **not** started by hand. `amika-scripts/setup.sh` (the
+`[lifecycle] setup_script`) installs dependencies when the sandbox is created, then runs
+`amika-scripts/start.sh` (the `start_script`), which Amika also runs on every later start.
+`start.sh` installs and enables a systemd unit, `example-repo-dev.service`, which runs Vite
+on port **4102** — the port registered as the `frontend` service in `.amika/config.toml`.
 
 Note this differs from the `9876` default used by a plain local `pnpm dev`. Only the
 explicit `--port` in the unit bridges the two.
@@ -33,13 +34,13 @@ tail -f /var/log/amika/example-repo-dev.log
 
 ## Passing environment variables to the server
 
-systemd units do not inherit the sandbox environment, so `setup.sh` copies the injected
+systemd units do not inherit the sandbox environment, so `start.sh` copies the injected
 `VITE_*` vars into `/etc/amika/example-repo-dev.env`, which the unit loads via
 `EnvironmentFile`. Anything new that `src/` reads through `import.meta.env` must be
 `VITE_`-prefixed to be picked up.
 
 That file lives in `/etc` rather than `/run` because `/run` is tmpfs: the enabled unit
-starts on boot *before* `setup.sh` reruns, so a `/run` path would fail on every reboot.
+starts on boot *before* `start.sh` reruns, so a `/run` path would fail on every reboot.
 
 Only `VITE_`-prefixed vars are copied. Those end up in the client bundle anyway, so no
 secrets are written to disk.
@@ -51,5 +52,9 @@ ignores `SIGHUP`, so the process stayed in the setup script's process group and 
 about a second after the lifecycle runner finished the script — leaving the registered
 `frontend` service with nothing behind it.
 
-`setup.sh` keeps a fallback path for hosts without systemd, and that path uses `setsid` so
+`start.sh` keeps a fallback path for hosts without systemd, and that path uses `setsid` so
 the detached process lands in its own session and survives the same process-group reap.
+
+A BYOC rig on smolvm is such a host: its PID 1 is smolvm's own init, not systemd. Nothing
+there brings the detached server back after the rig stops and starts again, which is why
+the launch lives in `start.sh` rather than `setup.sh`: Amika reruns it on each start.
